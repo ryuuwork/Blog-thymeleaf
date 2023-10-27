@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<a th:fragment="pagination_link(moduleURL,pageNumber,iconClass)"
+   th:href="@{|${moduleURL}/page/${pageNumber}|}"
+   class="page-link border-0 rounded-circle round-32 mx-1 d-flex align-items-center justify-content-center">
+    <i th:class="${iconClass}"></i>
+</a>
+
+<nav th:fragment="pagination(moduleURL)" aria-label="..." th:if="${totalPages >1}">
+    <ul class="pagination justify-content-center mb-0 mt-4">
+        <li class="page-item" th:if="${currentPage >1}">
+            <a th:replace="web/fragments :: pagination_link(${moduleURL},${currentPage -1},'ti ti-chevron-left')"></a>
+        </li>
+        <th:block th:if="${totalPages <= 10}">
+            <li class="page-item" aria-current="page"
+                th:classappend="${currentPage != number} ? 'page-item' : 'page-item active'"
+                th:each="number : ${#numbers.sequence(1, totalPages)}">
+                <a class="page-link border-0 rounded-circle round-32 mx-1 d-flex align-items-center justify-content-center"
+                   th:href="@{|${moduleURL}/page/${number}|}">[[${number}]]</a>
+            </li>
+        </th:block>
+        <th:block th:if="${totalPages > 10}">
+            <th:block th:if="${currentPage <= 5 || currentPage > totalPages - 4}">
+                <li th:each="number : ${#numbers.sequence(1, 5)}" style="color: #5a6a85"
+                    th:class="${currentPage != number ? 'page-item' : 'page-item active'}">
+                    <a class="page-link border-0 rounded-circle round-32 mx-1 d-flex align-items-center justify-content-center"
+                       th:href="${moduleURL+'/page/'+(number)}">[[${number}]]</a>
+                </li>
+                <a class="page-link" th:href="@{|${moduleURL}/page/6|}">...</a>
+
+                <li th:each="number : ${#numbers.sequence(totalPages - 4, totalPages)}"
+                    th:class="${currentPage != number ? 'page-item' : 'page-item active'}">
+                    <a class="page-link border-0 rounded-circle round-32 mx-1 d-flex align-items-center justify-content-center"
+                       th:href="${moduleURL+'/page/'+(number)}">[[${number}]]</a>
+                </li>
+            </th:block>
+            <th:block th:if="${currentPage > 5 && currentPage < totalPages - 3 }">
+                <a class="page-link" th:href="${moduleURL+'/page/'+(currentPage - 5)}">...</a>
+                <li th:each="number : ${#numbers.sequence(currentPage - 4, currentPage + 4)}"
+                    th:class="${currentPage != number ? 'page-item' : 'page-item active'}">
+                    <a class="page-link border-0 rounded-circle round-32 mx-1 d-flexalign-items-center justify-content-center"
+                       th:href="${moduleURL+'/page/'+(number)}">[[${number}]]</a>
+                </li>
+                <a class="page-link" th:href="${moduleURL+'/page/'+(currentPage + 4)}">...</a>
+            </th:block>
+        </th:block>
+        <li class="page-item" th:if="${currentPage < totalPages}">
+            <a th:replace="web/fragments :: pagination_link(${moduleURL},${currentPage +1},'ti ti-chevron-right')">
+            </a>
+        </li>
+    </ul>
+</nav>
+</body>
+</html>
