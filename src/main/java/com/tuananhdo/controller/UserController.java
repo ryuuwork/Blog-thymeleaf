@@ -4,16 +4,16 @@ import com.tuananhdo.entity.Role;
 import com.tuananhdo.entity.User;
 import com.tuananhdo.exception.EmailDuplicatedException;
 import com.tuananhdo.exception.UserNotFoundException;
+import com.tuananhdo.paging.PagingAndSortingHelper;
+import com.tuananhdo.paging.PaingAndSortingParam;
 import com.tuananhdo.payload.UserDTO;
-import com.tuananhdo.service.FileUploadService;
 import com.tuananhdo.service.UserAuthenticationService;
 import com.tuananhdo.service.UserService;
-import com.tuananhdo.service.impl.FileUploadServiceImpl;
+import com.tuananhdo.utils.FileUploadUtil;
+import com.tuananhdo.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -25,42 +25,25 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 
-import static com.tuananhdo.service.impl.FileUploadServiceImpl.USER_PHOTOS;
-
 @Controller
 @AllArgsConstructor
 public class UserController {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
-
 
     private final UserService userService;
     private final UserAuthenticationService authenticationService;
-    private final FileUploadService fileUploadService;
-
 
     @GetMapping("/admin/users")
-    public String listAllUsers(Model model) {
-        return listUserByPage(1, model,null);
+    public String listAllUsers() {
+        return "redirect:/admin/users/page/1?sortField=name&sortDir=asc";
     }
 
     @GetMapping("/admin/users/page/{pageNumber}")
-    public String listUserByPage(@PathVariable("pageNumber") int pageNumber,
-                                 Model model,
-                                 @Param("keyword") String keyword) {
-        Page<UserDTO> users = userService.findAllUserByPage(pageNumber, keyword);
-        int pageSize = 4;
-        int startCount = (pageNumber - 1) * pageSize + 1;
-        long endCount = Math.min(startCount + pageSize - 1, users.getTotalElements());
-        model.addAttribute("startCount", startCount);
-        model.addAttribute("currentPage", pageNumber);
-        model.addAttribute("users", users);
-        model.addAttribute("users", users);
-        model.addAttribute("userTitle", "User Account Management");
-        model.addAttribute("endCount", endCount);
-        model.addAttribute("totalItems", users.getTotalElements());
-        model.addAttribute("totalPages", users.getTotalPages());
-        model.addAttribute("keyword", keyword);
+    public String listUserByPage(@PaingAndSortingParam(moduleURL = "/admin/users", listName = "users", pageTitle = "Management User") PagingAndSortingHelper helper,
+                                 @PathVariable("pageNumber") int pageNumber, Model model) {
+        userService.findAllUserByPage(pageNumber, helper);
+        UserDTO loggedUser = userService.getLoggedUser();
+        model.addAttribute("loggedUser", loggedUser);
         return "admin/user/user-home";
     }
 
@@ -70,9 +53,9 @@ public class UserController {
         UserDTO user = new UserDTO();
         model.addAttribute("listRoles", listRoles);
         model.addAttribute("user", user);
+        model.addAttribute("pageTitle", "User Account Management");
         return "admin/user/create-user";
     }
-
 
     @GetMapping("/admin/user/update/{userId}")
     public String updateUser(@PathVariable("userId") Long userId, Model model) throws UserNotFoundException {
@@ -84,6 +67,25 @@ public class UserController {
         return "admin/user/update-user";
     }
 
+    @PostMapping("/admin/save/user")
+    public String saveUser(@Valid @ModelAttribute("user") UserDTO userDTO,
+                           BindingResult result,
+                           @RequestParam("image") MultipartFile multipartFile,
+                           Model model,
+                           RedirectAttributes redirectAttributes) throws IOException {
+        if (existingUser(userDTO, result, model)) return "admin/user/create-user";
+        if (!multipartFile.isEmpty()) {
+            String fileName = FileUploadUtil.getOriginalFileName(multipartFile);
+            userDTO.setPhotos(fileName);
+            UserDTO saveUser = userService.saveUser(userDTO);
+            String uploadDir = FileUploadUtil.getPhotoFolderId(FileUploadUtil.USER_PHOTOS, saveUser.getId());
+            FileUploadUtil.saveFile(uploadDir, fileName, multipartFile);
+        } else {
+            userService.saveUser(userDTO);
+        }
+        redirectAttributes.addFlashAttribute("message", "The user " + StringUtil.toLowerCase(userDTO.getName()) + " has been save successfully!");
+        return redirectPageUrlForNameOfUser(userDTO);
+    }
 
     @PostMapping("/admin/save/user/{userId}")
     public String updateUser(@PathVariable("userId") Long userId,
@@ -97,20 +99,24 @@ public class UserController {
             if (existingUser(userDTO, result, model)) return "admin/user/update-user";
         }
         updateUserDetails(userId, userDTO, multipartFile);
-        userService.updateUser(userDTO);
-        redirectAttributes.addFlashAttribute("message", "The user ID: " + userId + " has been updated successfully!");
-        return "redirect:/admin/users";
+        UserDTO updatedUser = userService.updateUser(userDTO);
+        redirectAttributes.addFlashAttribute("message", "The user " + StringUtil.toLowerCase(updatedUser.getName()) + " has been updated successfully!");
+        return redirectPageUrlForNameOfUser(userDTO);
+
     }
 
-    private void updateUserDetails(Long userId, UserDTO userDTO, MultipartFile multipartFile) throws IOException {
+    private void updateUserDetails(Long userId, UserDTO userDTO, MultipartFile multipartFile) throws IOException, UserNotFoundException, EmailDuplicatedException {
         if (!multipartFile.isEmpty()) {
-            String fileName = FileUploadServiceImpl.getFileName(multipartFile);
+            String fileName = FileUploadUtil.getOriginalFileName(multipartFile);
             userDTO.setPhotos(fileName);
-            String uploadDir = USER_PHOTOS + userDTO.getId();
-            FileUploadServiceImpl.saveFile(multipartFile, fileName, uploadDir);
-        } else {
-            fileUploadService.cleanUploadDir(userId);
+            String uploadDir = FileUploadUtil.getPhotoFolderId(FileUploadUtil.USER_PHOTOS, userId);
+            FileUploadUtil.saveFileAndCleanOldImage(multipartFile, fileName, uploadDir);
         }
+    }
+
+    private static String redirectPageUrlForNameOfUser(UserDTO userDTO) {
+        String firstPathOfName = userDTO.getEmail().split("@")[0];
+        return "redirect:/admin/users/page/1?sortField=id&sortDir=asc&keyword=" + firstPathOfName;
     }
 
 
@@ -128,22 +134,11 @@ public class UserController {
         return false;
     }
 
-
-    @PostMapping("/admin/save/user")
-    public String saveUser(@Valid @ModelAttribute("user") UserDTO userDTO, BindingResult result,
-                           @RequestParam("image") MultipartFile multipartFile, Model model) throws IOException {
-        if (existingUser(userDTO, result, model)) return "admin/user/create-user";
-        if (!multipartFile.isEmpty()) {
-            fileUploadService.saveUserWithFile(userDTO, multipartFile);
-        } else {
-            userService.saveUser(userDTO);
-        }
-        return "redirect:/admin/users";
-    }
-
     @GetMapping("/admin/user/delete/{userId}")
-    public String deleteUser(@PathVariable("userId") Long userId, RedirectAttributes redirectAttributes) {
+    public String deleteUser(@PathVariable("userId") Long userId, RedirectAttributes redirectAttributes) throws IOException {
         userService.deleteUserById(userId);
+        String folderImage = FileUploadUtil.getPhotoFolderId(FileUploadUtil.USER_PHOTOS, userId);
+        FileUploadUtil.cleanDir(folderImage);
         redirectAttributes.addFlashAttribute("message", "The user ID: " + userId + " has been deleted successfully!");
         return "redirect:/admin/users";
     }
@@ -151,10 +146,11 @@ public class UserController {
     @GetMapping("/admin/user/{userId}/enabled/{status}")
     public String updateUserEnabledStatus(@PathVariable("userId") Long userId,
                                           @PathVariable("status") boolean enabled,
-                                          RedirectAttributes redirectAttributes) {
+                                          RedirectAttributes redirectAttributes) throws UserNotFoundException {
+        UserDTO userDTO = userService.findByUserId(userId);
         userService.updateUserEnabledStatus(userId, enabled);
         String status = enabled ? "enabled" : "disabled";
-        redirectAttributes.addFlashAttribute("message", "The user ID : " + userId + " has been " + status);
-        return "redirect:/admin/users";
+        redirectAttributes.addFlashAttribute("message", "The user " + StringUtil.toLowerCase(userDTO.getName()) + " has been " + status);
+        return redirectPageUrlForNameOfUser(userDTO);
     }
 }

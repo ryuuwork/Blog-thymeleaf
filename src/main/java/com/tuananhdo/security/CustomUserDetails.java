@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 public class CustomUserDetails implements UserDetails {
     private static final long serialVersionUID = 1L;
     private User user;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return user.getRoles().stream()
@@ -37,7 +38,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return user.isAccountNonLocked();
     }
 
     @Override
@@ -53,5 +54,7 @@ public class CustomUserDetails implements UserDetails {
     public String getFullName() {
         return this.user.getName();
     }
-
+    public User getUser() {
+        return user;
+    }
 }

@@ -1,7 +1,6 @@
 package com.tuananhdo.entity;
 
 
-import com.tuananhdo.payload.UserDTO;
 import com.tuananhdo.utils.AuthenticationType;
 import lombok.*;
 
@@ -31,6 +30,10 @@ public class User {
     private boolean enabled;
     @Column(length = 64)
     private String photos;
+    @Column(length = 70)
+    private String address;
+    @Column(name = "phone_number", length = 10)
+    private String phoneNumber;
     @Enumerated(EnumType.STRING)
     @Column(name = "authentication_type", length = 10)
     private AuthenticationType authenticationType;
@@ -40,17 +43,16 @@ public class User {
     private String resetPasswordToken;
     @Column(name = "reset_password_token_expiration_time")
     private LocalDateTime resetPasswordTokenExpirationTime;
+    @Column(name = "account_non_locked", nullable = false)
+    private boolean accountNonLocked;
+    @Column(name = "failed_attempt", nullable = false)
+    private int failedAttempt;
+    @Column(name = "lock_time")
+    private LocalDateTime lockTime;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "users_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id")
             , inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     private Set<Role> roles = new HashSet<>();
 
-    public void coppyFields(UserDTO another){
-        setName(another.getName());
-        setEmail(another.getEmail());
-        setPhotos(another.getPhotos());
-        setEnabled(true);
-        setRoles(another.getRoles());
-    }
 }

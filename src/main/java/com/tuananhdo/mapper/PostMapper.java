@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 public class PostMapper {
 
-    // map Post to PostDTO
     public static PostDTO mapToPostDTO(Post post) {
         return PostDTO.builder()
                 .id(post.getId())
@@ -18,13 +17,9 @@ public class PostMapper {
                 .photos(post.getPhotos())
                 .createdOn(post.getCreatedOn())
                 .updateOn(post.getUpdatedOn())
-                .comments(post.getComments().stream()
-                        .map(CommentMapper::mapToCommentDTO)
-                        .collect(Collectors.toList()))
                 .build();
     }
 
-    // map PostDTO to Post
     public static Post mapToPost(PostDTO postDTO) {
         return Post.builder()
                 .id(postDTO.getId())
@@ -35,9 +30,6 @@ public class PostMapper {
                 .photos(postDTO.getPhotos())
                 .createdOn(postDTO.getCreatedOn())
                 .updatedOn(postDTO.getUpdateOn())
-                .comments(postDTO.getComments().stream()
-                        .map(CommentMapper::mapToComment)
-                        .collect(Collectors.toList()))
                 .build();
     }
 

@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:fragment="head">
-    <link id="themeColors" rel="stylesheet" th:href="@{/common/assets/css/styles.min.css}">
+    <link id="themeColors" rel="stylesheet" th:href="@{/common/assets/css/style.min.css}">
+<!--    <link id="darkCss" rel="stylesheet" th:href="@{/common/assets/css/style-dark.css}">-->
+    <link id="customColors" rel="stylesheet" th:href="@{/common/assets/css/custom.css}">
     <link rel="stylesheet" th:href="@{/font-awesome/all.css}">
     <link rel="shortcut icon" type="image/png" th:href="@{/common/assets/images/favicon.ico}"/>
-    <title>Mordenize</title>
+    <title></title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta name="handheldfriendly" content="true"/>
@@ -23,5 +25,6 @@
 <script th:src="@{/common/assets/libs/apexcharts/dist/apexcharts.min.js}"></script>
 <script th:src="@{/common/assets/libs/simplebar/dist/simplebar.js}"></script>
 <script th:src="@{/common/assets/js/dashboard.js}"></script>
+<script th:src="@{/common/assets/js/custom.js}"></script>
 </body>
 </html>

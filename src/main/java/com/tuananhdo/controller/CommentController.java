@@ -4,6 +4,7 @@ import com.tuananhdo.payload.CommentDTO;
 import com.tuananhdo.payload.PostDTO;
 import com.tuananhdo.service.CommentService;
 import com.tuananhdo.service.PostService;
+import com.tuananhdo.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,6 +21,7 @@ public class CommentController {
 
     private final CommentService commentService;
     private final PostService postService;
+    private final UserService userService;
 
     @PostMapping("/{postUrl}/comments")
     public String createComment(@PathVariable("postUrl") String postUrl,

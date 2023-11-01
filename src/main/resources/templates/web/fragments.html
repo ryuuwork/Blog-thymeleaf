@@ -1,53 +1,86 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
-<a th:fragment="pagination_link(moduleURL,pageNumber,iconClass)"
-   th:href="@{|${moduleURL}/page/${pageNumber}|}"
-   class="page-link border-0 rounded-circle round-32 mx-1 d-flex align-items-center justify-content-center">
+
+<a th:fragment="paginationLinkIcon(moduleURL,currentPage,sortField,sortDir,keyword,iconClass)"
+   th:href="${moduleURL + '/page/' + (currentPage) + '?sortField=' + sortField + '&sortDir=' + sortDir + (keyword != null ? '&keyword=' + keyword : '')}"
+   class="page-link border-0 rounded-circle custom-column-header-grey round-32 mx-1 d-flex align-items-center justify-content-center">
     <i th:class="${iconClass}"></i>
 </a>
 
-<nav th:fragment="pagination(moduleURL)" aria-label="..." th:if="${totalPages >1}">
+<th:block th:fragment="paginationLink(moduleURL,currentPage,number,sortField,sortDir,keyword)">
+    <a th:classappend="${currentPage == number} ?
+    'page-item active page-link border-0 rounded-circle round-32 d-flex align-items-center justify-content-center' :
+    'page-link border-0 rounded-circle custom-column-header-grey round-32 d-flex align-items-center justify-content-center' "
+       th:href="${moduleURL + '/page/' + (number) + (sortField != null ? '?sortField=' + sortField : '') + (sortDir != null ? '&sortDir=' + sortDir : '') + (keyword != null ? '&keyword=' + keyword : '')}">[[${number}]]
+    </a>
+</th:block>
+
+<th:block th:fragment="displayThreeDots(moduleURL,currentPage,sortField,sortDir,keyword)">
+    <a class="page-link border-0 rounded-circle custom-column-header-grey round-32 d-flex align-items-center justify-content-center"
+       th:href="${moduleURL+'/page/'+ (currentPage) + (sortField != null ? '?sortField=' + sortField : '') + (sortDir != null ? '&sortDir=' + sortDir : '') + (keyword != null ? '&keyword=' + keyword : '')}">...</a>
+</th:block>
+
+<th:block th:fragment="column_header(fieldName,nameColumn)">
+    <th>
+        <a class="custom-column-header-grey" th:href="@{'/admin/users/page/' + ${currentPage} + '?sortField=' +${fieldName}+ '&sortDir=' + ${sortField != fieldName ? sortDir : reverseSortDir}}">
+            [[${nameColumn}]]
+        </a>
+        <span th:if="${sortField==fieldName}"
+              th:class="${sortDir =='asc' ? 'ti ti-chevron-up' :'ti ti-chevron-down'}"></span>
+    </th>
+</th:block>
+
+<th:block th:fragment="search_form()">
+    <form class="position-relative" th:action="@{${moduleURL} +'/page/1'}">
+        <input type="hidden" name="sortField" th:value="${sortField}">
+        <input type="hidden" name="sortDir" th:value="${sortDir}">
+        <input type="search" class="form-control product-search ps-5" th:value="${keyword}"
+               id="keyword" name="keyword"
+               placeholder="Search users"/>
+        <i class="ti ti-search position-absolute top-50 start-0 translate-middle-y fs-6 text-dark ms-3"></i>
+    </form>
+</th:block>
+
+<nav th:fragment="pagination(moduleURL,entityName)" th:if="${totalPages > 1}">
+    <div class="text-center m-1" th:if="${totalItems >0}">
+        <span>[[${entityName}]]:  [[${startCount}]] to [[${endCount}]] of [[${totalItems}]]</span>
+    </div>
+    <div class="text-center m-1" th:unless="${totalItems > 0}">
+        <span>No users found</span>
+    </div>
     <ul class="pagination justify-content-center mb-0 mt-4">
-        <li class="page-item" th:if="${currentPage >1}">
-            <a th:replace="web/fragments :: pagination_link(${moduleURL},${currentPage -1},'ti ti-chevron-left')"></a>
+        <li class="page-item" th:if="${currentPage > 1}">
+            <a th:replace="web/fragments :: paginationLinkIcon(${moduleURL},${currentPage -1},${sortField},${sortDir},${keyword},'ti ti-chevron-left')"></a>
         </li>
         <th:block th:if="${totalPages <= 10}">
-            <li class="page-item" aria-current="page"
-                th:classappend="${currentPage != number} ? 'page-item' : 'page-item active'"
-                th:each="number : ${#numbers.sequence(1, totalPages)}">
-                <a class="page-link border-0 rounded-circle round-32 mx-1 d-flex align-items-center justify-content-center"
-                   th:href="@{|${moduleURL}/page/${number}|}">[[${number}]]</a>
+            <li th:each="number : ${#numbers.sequence(1, totalPages)}">
+                <th:block th:replace="web/fragments :: paginationLink(${moduleURL},${currentPage},${number},${sortField},${sortDir},${keyword})"></th:block>
             </li>
         </th:block>
         <th:block th:if="${totalPages > 10}">
             <th:block th:if="${currentPage <= 5 || currentPage > totalPages - 4}">
-                <li th:each="number : ${#numbers.sequence(1, 5)}" style="color: #5a6a85"
-                    th:class="${currentPage != number ? 'page-item' : 'page-item active'}">
-                    <a class="page-link border-0 rounded-circle round-32 mx-1 d-flex align-items-center justify-content-center"
-                       th:href="${moduleURL+'/page/'+(number)}">[[${number}]]</a>
+                <li th:each="number : ${#numbers.sequence(1, 6)}">
+                    <th:block
+                            th:replace="web/fragments :: paginationLink(${moduleURL},${currentPage},${number},${sortField},${sortDir},${keyword})"></th:block>
                 </li>
-                <a class="page-link" th:href="@{|${moduleURL}/page/6|}">...</a>
-
-                <li th:each="number : ${#numbers.sequence(totalPages - 4, totalPages)}"
-                    th:class="${currentPage != number ? 'page-item' : 'page-item active'}">
-                    <a class="page-link border-0 rounded-circle round-32 mx-1 d-flex align-items-center justify-content-center"
-                       th:href="${moduleURL+'/page/'+(number)}">[[${number}]]</a>
+                <th:block th:replace="web/fragments :: displayThreeDots(${moduleURL},7,${sortField},${sortDir},${keyword})"></th:block>
+                <li th:each="number : ${#numbers.sequence(totalPages - 4, totalPages)}">
+                    <th:block
+                            th:replace="web/fragments :: paginationLink(${moduleURL},${currentPage},${number},${sortField},${sortDir},${keyword})"></th:block>
                 </li>
             </th:block>
             <th:block th:if="${currentPage > 5 && currentPage < totalPages - 3 }">
-                <a class="page-link" th:href="${moduleURL+'/page/'+(currentPage - 5)}">...</a>
-                <li th:each="number : ${#numbers.sequence(currentPage - 4, currentPage + 4)}"
-                    th:class="${currentPage != number ? 'page-item' : 'page-item active'}">
-                    <a class="page-link border-0 rounded-circle round-32 mx-1 d-flexalign-items-center justify-content-center"
-                       th:href="${moduleURL+'/page/'+(number)}">[[${number}]]</a>
+                <th:block th:replace="web/fragments :: displayThreeDots(${moduleURL},${currentPage -5},${sortField},${sortDir},${keyword})"></th:block>
+                <li th:each="number : ${#numbers.sequence(currentPage - 4, currentPage + 4)}">
+                    <th:block
+                            th:replace="web/fragments :: paginationLink(${moduleURL},${currentPage},${number},${sortField},${sortDir},${keyword})"></th:block>
                 </li>
-                <a class="page-link" th:href="${moduleURL+'/page/'+(currentPage + 4)}">...</a>
+                <th:block th:replace="web/fragments :: displayThreeDots(${moduleURL},${currentPage + 4},${sortField},${sortDir},${keyword})"></th:block>
             </th:block>
         </th:block>
         <li class="page-item" th:if="${currentPage < totalPages}">
-            <a th:replace="web/fragments :: pagination_link(${moduleURL},${currentPage +1},'ti ti-chevron-right')">
-            </a>
+            <a th:replace="web/fragments :: paginationLinkIcon(${moduleURL},${currentPage +1},${sortField},${sortDir},${keyword},'ti ti-chevron-right')"></a>
         </li>
     </ul>
 </nav>

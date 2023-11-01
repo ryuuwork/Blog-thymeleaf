@@ -1,8 +1,8 @@
 package com.tuananhdo.service;
 
-import com.tuananhdo.entity.Post;
+import com.tuananhdo.exception.PostNotFoundException;
+import com.tuananhdo.paging.PagingAndSortingHelper;
 import com.tuananhdo.payload.PostDTO;
-import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -10,13 +10,13 @@ public interface PostService {
 
     List<PostDTO> findAllPosts();
 
-    Page<PostDTO> findAllPostsWithCommentCountAndReadTime(int pageNumber);
+    void findAllPostsWithCommentCountAndReadTime(int pageNumber,PagingAndSortingHelper helper);
 
-    Page<PostDTO> findAllPostByPage(int pageNumber);
+    void findAllPostByPage(int pageNumber, PagingAndSortingHelper helper);
 
-    Page<PostDTO> findPostsByUser(int pageNumber);
+    void findPostsByUser(int pageNumber, PagingAndSortingHelper helper);
 
-    Post savePost(PostDTO postDTO);
+    PostDTO createOrUpdatePost(PostDTO postDTO) throws PostNotFoundException;
 
     PostDTO findByPostId(Long postId);
 

@@ -3,9 +3,7 @@ package com.tuananhdo.mapper;
 import com.tuananhdo.entity.User;
 import com.tuananhdo.payload.UserDTO;
 import com.tuananhdo.utils.AuthenticationType;
-import lombok.AllArgsConstructor;
 
-@AllArgsConstructor
 public class UserMapper {
 
     public static UserDTO mapToUserDTO(User user) {
@@ -13,8 +11,10 @@ public class UserMapper {
                 .id(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
-                .enabled(true)
                 .photos(user.getPhotos())
+                .address(user.getAddress())
+                .phoneNumber(user.getPhoneNumber())
+                .enabled(user.isEnabled())
                 .roles(user.getRoles())
                 .build();
     }
@@ -25,8 +25,10 @@ public class UserMapper {
                 .name(userDTO.getName())
                 .email(userDTO.getEmail())
                 .password(userDTO.getPassword())
-                .enabled(true)
                 .photos(userDTO.getPhotos())
+                .address(userDTO.getAddress())
+                .phoneNumber(userDTO.getPhoneNumber())
+                .enabled(userDTO.isEnabled())
                 .authenticationType(AuthenticationType.DATABASE)
                 .roles(userDTO.getRoles())
                 .build();

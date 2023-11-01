@@ -3,6 +3,7 @@ package com.tuananhdo.service.impl;
 import com.tuananhdo.entity.Post;
 import com.tuananhdo.entity.User;
 import com.tuananhdo.mapper.PostMapper;
+import com.tuananhdo.paging.PagingAndSortingHelper;
 import com.tuananhdo.payload.PostDTO;
 import com.tuananhdo.repository.CommentRepository;
 import com.tuananhdo.repository.PostRepository;
@@ -13,7 +14,6 @@ import com.tuananhdo.utils.ReadTimeUtils;
 import com.tuananhdo.utils.TimeUnit;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -26,32 +26,42 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class PostServiceImpl implements PostService {
     public static final int POSTS_SIZE_PAGE = 6;
-
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
 
     @Override
-    public Page<PostDTO> findAllPostByPage(int pageNumber) {
-        Pageable pageable = PageRequest.of(pageNumber - 1, POSTS_SIZE_PAGE);
-        Page<Post> post = postRepository.findAll(pageable);
-        return post.map(PostMapper::mapToPostDTO);
+    public void findAllPostByPage(int pageNumber, PagingAndSortingHelper helper) {
+        Page<PostDTO> postDTOS = helper.sortAndPagingOrSearchAllPage(pageNumber, POSTS_SIZE_PAGE, postRepository,
+                PostMapper::mapToPostDTO);
+        helper.updateModelAttributes(pageNumber, postDTOS);
     }
 
     @Override
-    public Page<PostDTO> findPostsByUser(int pageNumber) {
-        Pageable pageable = PageRequest.of(pageNumber - 1, POSTS_SIZE_PAGE);
+    public void findPostsByUser(int pageNumber, PagingAndSortingHelper helper) {
+        Pageable pageable = helper.createPageable(pageNumber, POSTS_SIZE_PAGE);
+        User createdBy = getCurrentUser();
+        Page<Post> posts = searchPostByUser(helper, pageable, createdBy);
+        Page<PostDTO> postDTOS = posts.map(PostMapper::mapToPostDTO);
+        helper.updateModelAttributes(pageNumber, postDTOS);
+    }
+
+    private User getCurrentUser() {
         String email = Objects.requireNonNull(SecurityUtils.getCurrentUser()).getUsername();
-        User createdBy = userRepository.findByEmail(email);
-        Page<Post> posts = postRepository.findPostByUser(createdBy, pageable);
-        return posts.map(PostMapper::mapToPostDTO);
+        return userRepository.findByEmail(email);
+    }
+
+    private Page<Post> searchPostByUser(PagingAndSortingHelper helper, Pageable pageable, User createdBy) {
+        return Objects.nonNull(helper.getKeyword()) ?
+                postRepository.findAllKeyWordByUser(createdBy, pageable, helper.getKeyword()) :
+                postRepository.findAllByUser(createdBy, pageable);
     }
 
     @Override
-    public Page<PostDTO> findAllPostsWithCommentCountAndReadTime(int pageNumber) {
-        Pageable pageable = PageRequest.of(pageNumber - 1, POSTS_SIZE_PAGE);
+    public void findAllPostsWithCommentCountAndReadTime(int pageNumber, PagingAndSortingHelper helper) {
+        Pageable pageable = helper.createPageable(pageNumber, POSTS_SIZE_PAGE);
         Page<Post> posts = postRepository.findAll(pageable);
-        return posts.map(post -> {
+        Page<PostDTO> postDTOS = posts.map(post -> {
             PostDTO postDTO = PostMapper.mapToPostDTO(post);
             postDTO.setCommentCount(getCommentCount(postDTO));
             postDTO.setReadTime(getReadTime(postDTO));
@@ -61,6 +71,7 @@ public class PostServiceImpl implements PostService {
             postDTO.setTimeOfPost(timePost);
             return postDTO;
         });
+        helper.updateModelAttributes(pageNumber, postDTOS);
     }
 
 
@@ -81,12 +92,12 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Post savePost(PostDTO postDTO) {
-        String email = Objects.requireNonNull(SecurityUtils.getCurrentUser()).getUsername();
-        User user = userRepository.findByEmail(email);
+    public PostDTO createOrUpdatePost(PostDTO postDTO){
+        User user = getCurrentUser();
         Post post = PostMapper.mapToPost(postDTO);
         post.setCreatedBy(user);
-        return postRepository.save(post);
+        Post savePost = postRepository.save(post);
+        return PostMapper.mapToPostDTO(savePost);
     }
 
     @Override

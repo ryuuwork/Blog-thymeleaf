@@ -38,9 +38,12 @@
                         <div class="d-flex align-items-center w-100 h-100">
                             <div class="card-body px-xxl-5">
                                 <h2 class="mb-3 fs-7 fw-bolder">Welcome to Modernize</h2>
-                                <div th:if="${param.error}">
-                                    <div class="alert alert-danger" style="text-align: center">Invalid password or
-                                        email
+                                <div th:if="${param.error != null and session.message == null}">
+                                    <div class="alert alert-danger" style="text-align: center">Incorrect email or password.
+                                    </div>
+                                </div>
+                                <div th:if="${session.message != null}">
+                                    <div class="alert alert-danger" style="text-align: center">[[${session.message}]]
                                     </div>
                                 </div>
                                 <div th:if="${param.logout}">
@@ -71,8 +74,8 @@
                                 <form th:action="@{/login}" class="form-horizontal" method="post" role="form">
                                     <div class="mb-3">
                                         <label for="email" class="form-label">Email</label>
-                                        <input type="text" class="form-control" id="email" name="username"
-                                               aria-describedby="username">
+                                        <input type="email" class="form-control" id="email" name="email"
+                                               aria-describedby="email">
                                     </div>
                                     <div class="mb-4">
                                         <label for="password" class="form-label">Password</label>

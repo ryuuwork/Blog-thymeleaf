@@ -1,23 +1,28 @@
 package com.tuananhdo.controller;
 
+import com.tuananhdo.exception.PostNotFoundException;
+import com.tuananhdo.paging.PagingAndSortingHelper;
+import com.tuananhdo.paging.PaingAndSortingParam;
 import com.tuananhdo.payload.CommentDTO;
 import com.tuananhdo.payload.PostDTO;
+import com.tuananhdo.payload.UserDTO;
 import com.tuananhdo.security.SecurityUtils;
 import com.tuananhdo.service.CommentService;
-import com.tuananhdo.service.FileUploadService;
 import com.tuananhdo.service.PostService;
-import com.tuananhdo.service.impl.FileUploadServiceImpl;
+import com.tuananhdo.service.UserService;
+import com.tuananhdo.utils.FileUploadUtil;
 import com.tuananhdo.utils.ROLE;
+import com.tuananhdo.utils.StringUtil;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -28,39 +33,30 @@ import java.util.concurrent.CompletableFuture;
 @Controller
 @AllArgsConstructor
 public class PostController {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(PostController.class);
 
     private final PostService postService;
     private final CommentService commentService;
-    private final FileUploadService fileUploadService;
+    private final UserService userService;
 
     @GetMapping("/admin/posts")
-    public String homeReal(Model model) {
-        return listPostsByPage(1, model);
+    public String homeAllPosts() {
+        return "redirect:/admin/posts/page/1?sortField=title&sortDir=asc";
     }
 
     @GetMapping("/admin/posts/page/{pageNumber}")
-    public String listPostsByPage(@PathVariable("pageNumber") int pageNumber, Model model) {
+    public String listPostsByPage(@PathVariable("pageNumber") int pageNumber,
+                                  @PaingAndSortingParam(moduleURL = "/admin/posts",
+                                          listName = "posts",pageTitle = "Management Post")
+                                  PagingAndSortingHelper helper,Model model) {
+        UserDTO loggedUser = userService.getLoggedUser();
+        model.addAttribute("loggedUser", loggedUser);
         String role = SecurityUtils.getRole();
-        LOGGER.error(role);
-        Page<PostDTO> posts;
         if (ROLE.ROLE_ADMIN.name().equals(role)) {
-            posts = postService.findAllPostByPage(pageNumber);
+            postService.findPostsByUser(pageNumber, helper);
         } else {
-            posts = postService.findPostsByUser(pageNumber);
-
+            postService.findAllPostByPage(pageNumber, helper);
         }
-        int pageSize = 4;
-        int startCount = (pageNumber - 1) * pageSize + 1;
-        long endCount = Math.min(startCount + pageSize - 1, posts.getTotalElements());
-        model.addAttribute("startCount", startCount);
-        model.addAttribute("currentPage", pageNumber);
-        model.addAttribute("posts", posts);
-        model.addAttribute("postTitle", "Post");
-        model.addAttribute("endCount", endCount);
-        model.addAttribute("totalItems", posts.getTotalElements());
-        model.addAttribute("totalPages", posts.getTotalPages());
         return "admin/home";
     }
 
@@ -73,37 +69,57 @@ public class PostController {
 
     @PostMapping("/admin/posts")
     public String savePost(@Valid @ModelAttribute("post") PostDTO postDTO, BindingResult result,
-                           @RequestParam("image") MultipartFile multipartFile, Model model) throws IOException {
+                           @RequestParam("image") MultipartFile multipartFile,
+                           Model model,
+                           RedirectAttributes redirectAttributes) throws IOException, PostNotFoundException {
         if (result.hasErrors()) {
             model.addAttribute("post", postDTO);
             return "admin/create-post";
         }
-        postDTO.setUrl(FileUploadServiceImpl.getUrl(postDTO.getTitle()));
+        postDTO.setUrl(StringUtil.getUrl(postDTO.getTitle()));
         if (!multipartFile.isEmpty()) {
-            fileUploadService.savePostWithFile(postDTO, multipartFile);
+            String fileName = FileUploadUtil.getOriginalFileName(multipartFile);
+            postDTO.setPhotos(fileName);
+            PostDTO savePost = postService.createOrUpdatePost(postDTO);
+            String uploadDir = FileUploadUtil.getPhotoFolderId(FileUploadUtil.POST_PHOTOS, savePost.getId());
+            FileUploadUtil.saveFile(uploadDir, fileName, multipartFile);
         } else {
-            postService.savePost(postDTO);
+            postService.createOrUpdatePost(postDTO);
         }
-        return "redirect:/admin/posts";
+        redirectAttributes.addFlashAttribute("message", "The post " + StringUtil.toLowerCase(postDTO.getTitle()) + " has been updated successfully!");
+        return redirectPageUrlForTitleOfPost(postDTO);
+    }
+
+    private static String redirectPageUrlForTitleOfPost(PostDTO postDTO) {
+        String title = postDTO.getTitle();
+        String getTitlePost = title.contains(" ") ? title.split(" ")[0] : title;
+        return "redirect:/admin/posts/page/1?sortField=id&sortDir=asc&keyword=" + getTitlePost;
     }
 
 
     @PostMapping("/admin/posts/{postId}")
     public String updatePost(@PathVariable("postId") Long postId,
                              @Valid @ModelAttribute("post") PostDTO postDTO, BindingResult result,
-                             @RequestParam("image") MultipartFile multipartFile, Model model) throws IOException {
+                             @RequestParam("image") MultipartFile multipartFile,
+                             Model model,
+                             RedirectAttributes redirectAttributes) throws IOException, PostNotFoundException {
         if (result.hasErrors()) {
             model.addAttribute("post", postDTO);
             return "admin/update-post";
         }
+        updatePostDetails(postId, postDTO, multipartFile);
+        PostDTO updatedPost = postService.createOrUpdatePost(postDTO);
+        redirectAttributes.addFlashAttribute("message", "The post " + StringUtil.toLowerCase(updatedPost.getTitle()) + " has been updated successfully!");
+        return redirectPageUrlForTitleOfPost(postDTO);
+    }
+
+    private static void updatePostDetails(Long postId, PostDTO postDTO, MultipartFile multipartFile) throws IOException {
         if (!multipartFile.isEmpty()) {
-            fileUploadService.savePostWithFile(postDTO, multipartFile);
-        } else {
-            fileUploadService.cleanUploadDir(postId);
-            postService.savePost(postDTO);
+            String fileName = FileUploadUtil.getOriginalFileName(multipartFile);
+            postDTO.setPhotos(fileName);
+            String uploadDir = FileUploadUtil.getPhotoFolderId(FileUploadUtil.POST_PHOTOS, postId);
+            FileUploadUtil.saveFileAndCleanOldImage(multipartFile, fileName, uploadDir);
         }
-        model.addAttribute("post", postDTO);
-        return "redirect:/admin/posts";
     }
 
     @GetMapping("/admin/posts/{postId}/edit")
@@ -116,7 +132,8 @@ public class PostController {
     @GetMapping("/admin/posts/{postId}/delete")
     public String deletePost(@PathVariable("postId") Long postId) throws IOException {
         postService.deletePost(postId);
-        fileUploadService.cleanUploadDir(postId);
+        String folderImage = FileUploadUtil.getPhotoFolderId(FileUploadUtil.POST_PHOTOS,postId);
+        FileUploadUtil.cleanDir(folderImage);
         return "redirect:/admin/posts";
     }
 
@@ -154,6 +171,7 @@ public class PostController {
 
     @GetMapping("/admin/posts/comments")
     public String postComments(Model model) {
+        UserDTO loggedUser = userService.getLoggedUser();
         String role = SecurityUtils.getRole();
         List<CommentDTO> comments;
         if (ROLE.ROLE_ADMIN.name().equals(role)) {
@@ -161,6 +179,7 @@ public class PostController {
         } else {
             comments = commentService.findCommentsByPost();
         }
+        model.addAttribute("loggedUser", loggedUser);
         model.addAttribute("comments", comments);
         return "admin/comments";
     }

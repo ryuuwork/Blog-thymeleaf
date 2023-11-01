@@ -1,11 +1,11 @@
 package com.tuananhdo.controller;
 
+import com.tuananhdo.paging.PagingAndSortingHelper;
+import com.tuananhdo.paging.PaingAndSortingParam;
 import com.tuananhdo.payload.CommentDTO;
 import com.tuananhdo.payload.PostDTO;
 import com.tuananhdo.service.PostService;
-import com.tuananhdo.service.impl.PostServiceImpl;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,21 +17,15 @@ public class BlogController {
     private final PostService postServices;
 
     @GetMapping("/")
-    public String viewBlogPosts(Model model) {
-        return listPostHomeByPage(1, model);
+    public String viewBlogPosts() {
+        return "redirect:/posts/page/1";
     }
 
     @GetMapping("/posts/page/{pageNumber}")
-    public String listPostHomeByPage(@PathVariable("pageNumber") int pageNumber, Model model) {
-        Page<PostDTO> posts = postServices.findAllPostsWithCommentCountAndReadTime(pageNumber);
-        int startCount = (pageNumber - 1) * PostServiceImpl.POSTS_SIZE_PAGE + 1;
-        long endCount = Math.min(startCount + PostServiceImpl.POSTS_SIZE_PAGE - 1, posts.getTotalElements());
-        model.addAttribute("startCount", startCount);
-        model.addAttribute("currentPage", pageNumber);
-        model.addAttribute("posts", posts);
-        model.addAttribute("endCount", endCount);
-        model.addAttribute("totalItems", posts.getTotalElements());
-        model.addAttribute("totalPages", posts.getTotalPages());
+    public String listPostHomeByPage(@PathVariable("pageNumber") int pageNumber,
+                                     @PaingAndSortingParam(moduleURL = "/posts", listName = "posts", pageTitle = "Post")
+                                     PagingAndSortingHelper helper) {
+        postServices.findAllPostsWithCommentCountAndReadTime(pageNumber, helper);
         return "web/home";
     }
 

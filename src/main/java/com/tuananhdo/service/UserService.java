@@ -1,27 +1,44 @@
 package com.tuananhdo.service;
 
 import com.tuananhdo.entity.Role;
+import com.tuananhdo.entity.User;
 import com.tuananhdo.exception.EmailDuplicatedException;
+import com.tuananhdo.exception.PasswordValidationException;
 import com.tuananhdo.exception.UserNotFoundException;
+import com.tuananhdo.paging.PagingAndSortingHelper;
 import com.tuananhdo.payload.UserDTO;
-import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 public interface UserService {
 
-    Page<UserDTO> findAllUserByPage(int pageNumber,String keyword);
+    void findAllUserByPage(int pageNumber, PagingAndSortingHelper helper);
+
+    UserDTO getLoggedUser();
+
+    UserDTO updateAccountDetails(UserDTO userDTO) throws UserNotFoundException, PasswordValidationException;
 
     List<Role> listRoles();
 
     UserDTO saveUser(UserDTO userDTO);
 
-    void updateUser(UserDTO user) throws UserNotFoundException, EmailDuplicatedException;
+    UserDTO updateUser(UserDTO user) throws UserNotFoundException, EmailDuplicatedException;
 
     void deleteUserById(Long userId);
 
     UserDTO findByUserId(Long id) throws UserNotFoundException;
 
-    void updateUserEnabledStatus(Long userId,boolean enabled);
+    void updateUserEnabledStatus(Long userId, boolean enabled);
 
+    User getByEmail(String email);
+
+    void increaseFailedAttempt(User user);
+
+    void lock(User user);
+
+    void unlock(User user);
+
+    void resetFailedAttempts(String email);
+
+    List<User> getAllExpiredLockedAccounts();
 }

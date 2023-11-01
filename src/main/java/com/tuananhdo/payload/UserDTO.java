@@ -29,10 +29,15 @@ public class UserDTO {
     @NotBlank(message = "{user.password.not.blank}")
     @Size(min = 8,max = 20,message = "{user.password.size}")
     private String password;
+    private String newPassword;
     @Enumerated(EnumType.STRING)
     private AuthenticationType authenticationType;
     private boolean enabled;
     private String photos;
+    @NotBlank(message = "{user.address.not.blank}")
+    private String address;
+    @NotBlank(message = "{user.phone.not.blank}")
+    private String phoneNumber;
     private String resetPasswordToken;
     private String verificationCode;
     private LocalDateTime resetPasswordTokenExpirationTime;
@@ -44,5 +49,4 @@ public class UserDTO {
         }
         return "/user-photos/"+this.id + "/"+ this.photos;
     }
-
 }
