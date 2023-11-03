@@ -96,26 +96,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO updateAccountDetails(UserDTO accountDTO) throws UserNotFoundException, PasswordValidationException {
-        User userInDB = userRepository.findById(accountDTO.getId())
-                .orElseThrow(() -> new UserNotFoundException("Not found user with id : " + accountDTO.getId()));
-        if (!accountDTO.getPassword().isEmpty()) {
-            boolean isMatch = passwordEncoder.matches(accountDTO.getPassword(), userInDB.getPassword());
+    public UserDTO updateAccountDetails(UserDTO userDTO) throws UserNotFoundException, PasswordValidationException {
+        User userInDB = userRepository.findById(userDTO.getId())
+                .orElseThrow(() -> new UserNotFoundException("Not found user with id : " + userDTO.getId()));
+        if (!userDTO.getPassword().isEmpty()) {
+            boolean isMatch = passwordEncoder.matches(userDTO.getPassword(), userInDB.getPassword());
             if (isMatch) {
-                userInDB.setPassword(accountDTO.getNewPassword());
+                userInDB.setPassword(userDTO.getNewPassword());
                 encodedPassword(userInDB);
             } else {
                 throw new PasswordValidationException("Current password is incorrect");
             }
         }
-        if (Objects.nonNull(accountDTO.getPhotos())) {
-            userInDB.setPhotos(accountDTO.getPhotos());
+        if (Objects.nonNull(userDTO.getPhotos())) {
+            userInDB.setPhotos(userDTO.getPhotos());
         }
-        userInDB.setName(accountDTO.getName());
+        userInDB.setName(userDTO.getName());
         userInDB.setEnabled(true);
-        userInDB.setEmail(accountDTO.getEmail());
-        userInDB.setAddress(accountDTO.getAddress());
-        userInDB.setPhoneNumber(accountDTO.getPhoneNumber());
+        userInDB.setEmail(userDTO.getEmail());
+        userInDB.setAddress(userDTO.getAddress());
+        userInDB.setPhoneNumber(userDTO.getPhoneNumber());
         userRepository.save(userInDB);
         return UserMapper.mapToUserDTO(userInDB);
     }

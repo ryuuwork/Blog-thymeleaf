@@ -16,7 +16,6 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class PostCsvExporter extends AbstractExporter {
-
     @Async("exportCsvThread")
     public CompletableFuture<Void> export(List<PostDTO> posts, HttpServletResponse response) throws IOException {
         Instant startTime = Instant.now();

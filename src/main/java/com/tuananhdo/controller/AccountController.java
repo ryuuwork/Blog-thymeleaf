@@ -7,21 +7,24 @@ import com.tuananhdo.service.UserService;
 import com.tuananhdo.utils.FileUploadUtil;
 import com.tuananhdo.utils.StringUtil;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.validation.Valid;
 import java.io.IOException;
 
 @Controller
 @AllArgsConstructor
 public class AccountController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AccountController.class);
 
     private final UserService userService;
 
@@ -33,17 +36,14 @@ public class AccountController {
     }
 
     @PostMapping("/admin/users/account/update")
-    public String updateAccountDetails(@Valid UserDTO userDTO, BindingResult bindingResult,
+    public String updateAccountDetails(@ModelAttribute("loggedUser") UserDTO userDTO, BindingResult bindingResult,
                                        @RequestParam("image") MultipartFile multipartFile,
-                                       RedirectAttributes redirectAttributes,Model model) throws IOException {
-//        if (bindingResult.hasErrors()) {
-//            UserDTO loggedUser = userService.getLoggedUser();
-//            model.addAttribute("loggedUser", loggedUser);
-//            return "/admin/user/account-setting";
-//        }
+                                       RedirectAttributes redirectAttributes) throws IOException {
+        if (bindingResult.hasErrors()) {
+            LOGGER.info(bindingResult.getAllErrors().toString());
+            return "/admin/user/account-setting";
+        }
         try {
-            UserDTO loggedUser = userService.getLoggedUser();
-            model.addAttribute("loggedUser", loggedUser);
             if (!multipartFile.isEmpty()) {
                 String fileName = FileUploadUtil.getOriginalFileName(multipartFile);
                 userDTO.setPhotos(fileName);

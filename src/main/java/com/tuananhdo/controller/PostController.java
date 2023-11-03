@@ -34,6 +34,7 @@ import java.util.concurrent.CompletableFuture;
 @AllArgsConstructor
 public class PostController {
     private static final Logger LOGGER = LoggerFactory.getLogger(PostController.class);
+    public static final String DEFAULT_REDIRECT_URL = "redirect:/admin/posts/page/1?sortField=title&sortDir=asc";
 
     private final PostService postService;
     private final CommentService commentService;
@@ -41,7 +42,7 @@ public class PostController {
 
     @GetMapping("/admin/posts")
     public String homeAllPosts() {
-        return "redirect:/admin/posts/page/1?sortField=title&sortDir=asc";
+        return DEFAULT_REDIRECT_URL;
     }
 
     @GetMapping("/admin/posts/page/{pageNumber}")
@@ -110,7 +111,7 @@ public class PostController {
         updatePostDetails(postId, postDTO, multipartFile);
         PostDTO updatedPost = postService.createOrUpdatePost(postDTO);
         redirectAttributes.addFlashAttribute("message", "The post " + StringUtil.toLowerCase(updatedPost.getTitle()) + " has been updated successfully!");
-        return redirectPageUrlForTitleOfPost(postDTO);
+        return DEFAULT_REDIRECT_URL;
     }
 
     private static void updatePostDetails(Long postId, PostDTO postDTO, MultipartFile multipartFile) throws IOException {
@@ -134,7 +135,7 @@ public class PostController {
         postService.deletePost(postId);
         String folderImage = FileUploadUtil.getPhotoFolderId(FileUploadUtil.POST_PHOTOS,postId);
         FileUploadUtil.cleanDir(folderImage);
-        return "redirect:/admin/posts";
+        return DEFAULT_REDIRECT_URL;
     }
 
     @GetMapping("/admin/posts/{postUrl}/view")
@@ -150,7 +151,7 @@ public class PostController {
     public String searchPosts(@RequestParam(value = "search") String search, Model model) {
         List<PostDTO> posts = postService.searchPosts(search);
         model.addAttribute("posts", posts);
-        return "home1";
+        return DEFAULT_REDIRECT_URL;
     }
 
     @GetMapping("/admin/posts/export/csv")

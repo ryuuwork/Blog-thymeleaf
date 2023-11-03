@@ -6,7 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @Setter
 @Getter
@@ -15,14 +16,15 @@ import javax.validation.constraints.NotEmpty;
 public class RegistrationDTO {
 
     private Long id;
-    @NotEmpty(message = "Can not leave the first name blank")
+    @NotBlank(message = "{register.firstname.not.blank}")
     private String firstName;
-    @NotEmpty(message = "Can not leave the last name blank")
+    @NotBlank(message = "{register.lastname.not.blank}")
     private String lastName;
-    @NotEmpty(message = "Can not leave the email blank")
+    @NotBlank(message = "{register.email.not.blank}")
     @Email
     private String email;
-    @NotEmpty(message = "Can not leave the password blank")
+    @NotBlank(message = "{register.password.not.blank}")
+    @Size(min = 8,max = 20,message = "{register.password.size}")
     private String password;
     private String verificationCode;
 }

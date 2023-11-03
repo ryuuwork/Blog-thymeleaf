@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class PostExcelExporter extends AbstractExporter {
-
     private final XSSFWorkbook workbook;
     private final XSSFSheet sheet;
 

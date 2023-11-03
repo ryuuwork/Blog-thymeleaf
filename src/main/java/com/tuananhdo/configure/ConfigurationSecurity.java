@@ -20,7 +20,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @AllArgsConstructor
 @EnableWebSecurity
 public class ConfigurationSecurity {
-
     private final CustomLoginSuccessHandler customLoginSuccessHandler;
     private final CustomLoginFailureHandler customLoginFailureHandler;
     @Bean
@@ -50,7 +49,7 @@ public class ConfigurationSecurity {
                                 .loginPage("/login")
                                 .failureHandler(customLoginFailureHandler)
                                 .successHandler(customLoginSuccessHandler)
-                                .defaultSuccessUrl("/admin/users")
+                                .defaultSuccessUrl("/")
                                 .usernameParameter("email")
 //                                .userInfoEndpoint()
 //                                .userService(oAuth2UserService)

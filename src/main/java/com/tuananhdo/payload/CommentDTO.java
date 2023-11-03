@@ -3,7 +3,7 @@ package com.tuananhdo.payload;
 import lombok.*;
 
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
 @Setter
@@ -14,12 +14,12 @@ import java.time.LocalDateTime;
 public class CommentDTO {
 
     private Long id;
-    @NotEmpty(message = "Can not leave the name blank")
+    @NotBlank(message = "{comment.name.not.blank}")
     private String name;
-    @NotEmpty(message = "Can not leave the email blank")
+    @NotBlank(message = "{comment.email.not.blank}")
     @Email
     private String email;
-    @NotEmpty(message = "Can not leave the content blank")
+    @NotBlank(message = "{comment.email.not.blank}")
     private String content;
     private LocalDateTime createdOn;
     private LocalDateTime updatedOn;

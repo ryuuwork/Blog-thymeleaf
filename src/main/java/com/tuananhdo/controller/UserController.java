@@ -29,13 +29,14 @@ import java.util.List;
 @AllArgsConstructor
 public class UserController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
+    private static final String DEFAULT_REDIRECT_URL = "redirect:/admin/users/page/1?sortField=name&sortDir=asc";
 
     private final UserService userService;
     private final UserAuthenticationService authenticationService;
 
     @GetMapping("/admin/users")
     public String listAllUsers() {
-        return "redirect:/admin/users/page/1?sortField=name&sortDir=asc";
+        return DEFAULT_REDIRECT_URL;
     }
 
     @GetMapping("/admin/users/page/{pageNumber}")
@@ -55,16 +56,6 @@ public class UserController {
         model.addAttribute("user", user);
         model.addAttribute("pageTitle", "User Account Management");
         return "admin/user/create-user";
-    }
-
-    @GetMapping("/admin/user/update/{userId}")
-    public String updateUser(@PathVariable("userId") Long userId, Model model) throws UserNotFoundException {
-        List<Role> listRoles = userService.listRoles();
-        UserDTO user = userService.findByUserId(userId);
-        model.addAttribute("listRoles", listRoles);
-        model.addAttribute("user", user);
-        model.addAttribute("pageTitle", "Update User");
-        return "admin/user/update-user";
     }
 
     @PostMapping("/admin/save/user")
@@ -87,6 +78,29 @@ public class UserController {
         return redirectPageUrlForNameOfUser(userDTO);
     }
 
+    private boolean existingUser(UserDTO userDTO, BindingResult result, Model model) {
+        User existingUser = authenticationService.findByEmail(userDTO.getEmail());
+        if (existingUser != null && !existingUser.getEmail().isEmpty()) {
+            result.rejectValue("email", null, "There is already a user with same email");
+        }
+        List<Role> listRoles = userService.listRoles();
+        if (result.hasErrors()) {
+            model.addAttribute("listRoles", listRoles);
+            return true;
+        }
+        return false;
+    }
+
+    @GetMapping("/admin/user/update/{userId}")
+    public String updateUser(@PathVariable("userId") Long userId, Model model) throws UserNotFoundException {
+        List<Role> listRoles = userService.listRoles();
+        UserDTO user = userService.findByUserId(userId);
+        model.addAttribute("listRoles", listRoles);
+        model.addAttribute("user", user);
+        model.addAttribute("pageTitle", "Update User");
+        return "admin/user/update-user";
+    }
+
     @PostMapping("/admin/save/user/{userId}")
     public String updateUser(@PathVariable("userId") Long userId,
                              @Valid @ModelAttribute("user") UserDTO userDTO,
@@ -101,7 +115,7 @@ public class UserController {
         updateUserDetails(userId, userDTO, multipartFile);
         UserDTO updatedUser = userService.updateUser(userDTO);
         redirectAttributes.addFlashAttribute("message", "The user " + StringUtil.toLowerCase(updatedUser.getName()) + " has been updated successfully!");
-        return redirectPageUrlForNameOfUser(userDTO);
+        return DEFAULT_REDIRECT_URL;
 
     }
 
@@ -119,28 +133,14 @@ public class UserController {
         return "redirect:/admin/users/page/1?sortField=id&sortDir=asc&keyword=" + firstPathOfName;
     }
 
-
-    private boolean existingUser(@ModelAttribute("user") @Valid UserDTO userDTO, BindingResult result, Model model) {
-        User existingUser = authenticationService.findByEmail(userDTO.getEmail());
-        if (existingUser != null && !existingUser.getEmail().isEmpty()) {
-            result.rejectValue("email", null, "There is already a user with same email");
-        }
-        List<Role> listRoles = userService.listRoles();
-        if (result.hasErrors()) {
-            model.addAttribute("user", userDTO);
-            model.addAttribute("listRoles", listRoles);
-            return true;
-        }
-        return false;
-    }
-
     @GetMapping("/admin/user/delete/{userId}")
-    public String deleteUser(@PathVariable("userId") Long userId, RedirectAttributes redirectAttributes) throws IOException {
+    public String deleteUser(@PathVariable("userId") Long userId,
+                             RedirectAttributes redirectAttributes) throws IOException {
         userService.deleteUserById(userId);
         String folderImage = FileUploadUtil.getPhotoFolderId(FileUploadUtil.USER_PHOTOS, userId);
         FileUploadUtil.cleanDir(folderImage);
         redirectAttributes.addFlashAttribute("message", "The user ID: " + userId + " has been deleted successfully!");
-        return "redirect:/admin/users";
+        return DEFAULT_REDIRECT_URL;
     }
 
     @GetMapping("/admin/user/{userId}/enabled/{status}")
@@ -151,6 +151,6 @@ public class UserController {
         userService.updateUserEnabledStatus(userId, enabled);
         String status = enabled ? "enabled" : "disabled";
         redirectAttributes.addFlashAttribute("message", "The user " + StringUtil.toLowerCase(userDTO.getName()) + " has been " + status);
-        return redirectPageUrlForNameOfUser(userDTO);
+        return DEFAULT_REDIRECT_URL;
     }
 }

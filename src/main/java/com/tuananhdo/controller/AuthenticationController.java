@@ -1,8 +1,8 @@
 package com.tuananhdo.controller;
 
 import com.tuananhdo.configure.PathConfiguration;
-import com.tuananhdo.payload.RegistrationDTO;
 import com.tuananhdo.entity.User;
+import com.tuananhdo.payload.RegistrationDTO;
 import com.tuananhdo.service.MailService;
 import com.tuananhdo.service.UserAuthenticationService;
 import lombok.AllArgsConstructor;
@@ -33,7 +33,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register/save")
-    public String register(@Valid @ModelAttribute("userRegistration") RegistrationDTO userRegistration, BindingResult result, Model model) {
+    public String register(@Valid @ModelAttribute("userRegistration") RegistrationDTO userRegistration,
+                           BindingResult result,
+                           Model model) {
         User existingUser = authenticationService.findByEmail(userRegistration.getEmail());
         if (existingUser != null && existingUser.getEmail() != null && !existingUser.getEmail().isEmpty()) {
             result.rejectValue("email", null, "There is already a user with same email");
@@ -45,17 +47,18 @@ public class AuthenticationController {
         String randomCode = RandomString.make(64);
         userRegistration.setVerificationCode(randomCode);
         authenticationService.saveUserResigter(userRegistration);
-        String token = pathConfiguration.getRootPath() + "/verify/email?token=" + userRegistration.getVerificationCode();
+        String token = "<a>" + pathConfiguration.getRootPath() + "/verify/email?token=" + userRegistration.getVerificationCode() + "</a>";
         mailService.sendVerificationMail(userRegistration, token);
         return "redirect:/register?success";
     }
 
     @GetMapping("/verify/email")
-    public String verifyRegisterEmail(@RequestParam("token") String token, Model model) {
+    public String verifyRegisterEmail(@RequestParam("token") String token,
+                                      Model model) {
         boolean verifycationToken = authenticationService.getTokenVerification(token);
         String message = verifycationToken ? "Thank you for your email verification successfully" : "Email verification failed";
         model.addAttribute("message", message);
-        return "authentication/message";
+        return "authentication/login";
     }
 
     @GetMapping("/login")
@@ -65,5 +68,4 @@ public class AuthenticationController {
         }
         return "redirect:/admin/posts";
     }
-
 }

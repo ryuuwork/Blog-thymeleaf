@@ -12,9 +12,8 @@ import javax.validation.constraints.NotBlank;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class ForgotPasswordDTO {
-    @Email(message = "Email invalidate")
-    @NotBlank(message = "Email cannot be blank")
+    @Email(message = "{forgot.password.valid.email}")
+    @NotBlank(message = "{forgot.password.email.not.blank}")
     private String email;
 }

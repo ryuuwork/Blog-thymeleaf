@@ -16,24 +16,27 @@
                         <div class="col-9">
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb">
-                                    <li class="breadcrumb-item"><a th:href="@{/register}">Sign up</a>
-                                    </li>
-                                    <li class="breadcrumb-item" aria-current="page" sec:authorize="isAnonymous()">
+                                    <li><a th:href="@{/register}" sec:authorize="isAnonymous()">Sign up</a></li>
+                                    &nbsp; &nbsp; &nbsp;
+                                    <li aria-current="page" sec:authorize="isAnonymous()">
                                         <a th:href="@{/login}">Sign in</a></li>
                                     <th:block sec:authorize="isAuthenticated()">
-                                        <li class="breadcrumb-item" aria-current="page" sec:authentication="principal.username"></li>
-                                        <li class="breadcrumb-item" aria-current="page"><a th:href="@{/logout}">Logout</a></li>
+                                        <span>Welcome: &nbsp;</span><li aria-current="page" sec:authentication="principal.username"></li>
+                                        &nbsp; &nbsp;
+                                        <li aria-current="page"><a th:href="@{/logout}">Logout</a></li>
                                     </th:block>
 
                                     <th:block sec:authorize="hasRole('ROLE_ADMIN')">
-                                        <li class="breadcrumb-item" aria-current="page"><a th:href="@{/admin/posts}">Manage Admin Page</a></li>
+                                        <li class="breadcrumb-item" aria-current="page"><a th:href="@{/admin/posts}">Manage
+                                            Admin Page</a></li>
                                     </th:block>
                                 </ol>
                             </nav>
                         </div>
                         <div class="col-3">
                             <div class="text-center mb-n5">
-                                <img th:src="@{/templates/common/assets/images/products/s1.jpg}" alt="" class="img-fluid mb-n4">
+                                <img th:src="@{/templates/common/assets/images/products/s1.jpg}" alt=""
+                                     class="img-fluid mb-n4">
                             </div>
                         </div>
                     </div>
@@ -45,7 +48,7 @@
                         <div class="position-relative">
                             <a th:href="@{/posts/{postUrl}(postUrl=${posts.url})}">
                                 <img th:src="@{${posts.getPhotosPath}}"
-                                    class="card-img-top rounded-0" alt="..."></a>
+                                     class="card-img-top rounded-0" alt="..."></a>
                             <span class="badge bg-white text-dark fs-2 rounded-4 lh-sm mb-9 me-9 py-1 px-2 fw-semibold position-absolute bottom-0 end-0">[[${posts.readTime}]]</span>
                             <img th:src="@{${posts.getPhotosPath}}" alt=""
                                  class="img-fluid rounded-circle position-absolute bottom-0 start-0 mb-n9 ms-9"
@@ -54,7 +57,8 @@
                         </div>
                         <div class="card-body p-4">
                             <span class="badge text-bg-light fs-2 rounded-4 py-1 px-2 lh-sm  mt-3">Gadget</span>
-                            <a class="d-block my-4 fs-5 text-dark fw-semibold" th:href="@{/posts/{postUrl}(postUrl=${posts.url})}">[[${posts.title}]]</a>
+                            <a class="d-block my-4 fs-5 text-dark fw-semibold"
+                               th:href="@{/posts/{postUrl}(postUrl=${posts.url})}">[[${posts.title}]]</a>
                             <div class="d-flex align-items-center gap-4">
                                 <div class="d-flex align-items-center gap-2"><i class="ti ti-eye text-dark fs-5"></i>6763
                                 </div>

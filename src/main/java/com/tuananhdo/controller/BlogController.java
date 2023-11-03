@@ -37,10 +37,4 @@ public class BlogController {
         model.addAttribute("comment", comment);
         return "web/single-posts";
     }
-
-    @GetMapping("/error")
-    public String error() {
-        return "/error/404";
-    }
-
 }

@@ -12,6 +12,7 @@ public class UserMapper {
                 .name(user.getName())
                 .email(user.getEmail())
                 .photos(user.getPhotos())
+                .password(user.getPassword())
                 .address(user.getAddress())
                 .phoneNumber(user.getPhoneNumber())
                 .enabled(user.isEnabled())

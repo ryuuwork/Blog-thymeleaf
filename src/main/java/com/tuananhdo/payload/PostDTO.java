@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Transient;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,12 +17,12 @@ import java.util.List;
 public class PostDTO {
 
     private Long id;
-    @NotEmpty(message = "Can not leave the title blank")
+    @NotBlank(message = "{post.title.not.blank}")
     private String title;
     private String url;
-    @NotEmpty(message = "Can not leave the content blank")
+    @NotBlank(message = "{post.content.not.blank}")
     private String content;
-    @NotEmpty(message = "Can not leave the description blank")
+    @NotBlank(message = "{post.description.not.blank}")
     private String shortDescription;
     private String photos;
     private LocalDateTime createdOn;

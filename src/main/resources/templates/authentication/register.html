@@ -1,21 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="common/fragments::head">
-  <!--  Title -->
-  <title>Mordenize</title>
-  <!--  Required Meta Tag -->
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="handheldfriendly" content="true" />
-  <meta name="MobileOptimized" content="width" />
-  <meta name="description" content="Mordenize" />
-  <meta name="author" content="" />
-  <meta name="keywords" content="Mordenize" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <!--  Favicon -->
-  <link rel="shortcut icon" type="image/png" href="../../dist/images/logos/favicon.png" />
-  <!-- Core Css -->
-  <link  id="themeColors"  rel="stylesheet" href="../../dist/css/style.min.css" />
+  <title></title>
 </head>
 <body>
 <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
@@ -36,12 +22,12 @@
               <div class="card-body px-xxl-5">
                 <h2 class="mb-3 fs-7 fw-bolder">Welcome to Modernize</h2>
                 <div class="row">
-                  <div th:if="${param.success}">
-                    <div class="alert alert-info">
-                      You have registered successfully!
-                      <p>Check your email to verify your account</p>
-                    </div>
-                  </div>
+                  <th:block th:if="${param.success}">
+                    <p class="alert alert-info" style="text-align: center"> You have registered successfully. Check your email to verify your account</p>
+                  </th:block>
+                  <th:block th:if="${message != null}">
+                    <p class="alert alert-success" style="text-align: center">[[${message}]]</p>
+                  </th:block>
                   <div class="col-6 mb-2 mb-sm-0">
                     <a th:href="@{/oauth2/authorization/google}"  class="btn btn-white text-dark border fw-normal d-flex align-items-center justify-content-center rounded-2 py-8"  role="button">
                       <img th:src="@{/common/assets/images/svgs/google-icon.svg}" alt="" class="img-fluid me-2" width="18" height="18">
@@ -58,22 +44,22 @@
                 <form method="post" th:action="@{/register/save}" th:object="${userRegistration}">
                   <div class="mb-3">
                     <label for="firstName" class="form-label">First Name</label>
-                    <input type="text" class="form-control" th:field="*{firstName}" id="firstName" aria-describedby="firstName">
+                    <input type="text" class="form-control" th:field="*{firstName}" id="firstName" placeholder="Enter your first name">
                     <p th:if="${#fields.hasErrors('firstName')}" class="text-danger" th:errors="*{firstName}"></p>
                   </div>
                   <div class="mb-3">
                     <label for="lastName" class="form-label">Last Name</label>
-                    <input type="text" class="form-control" th:field="*{lastName}" id="lastName" aria-describedby="lastName">
+                    <input type="text" class="form-control" th:field="*{lastName}" id="lastName" placeholder="Enter your last name">
                     <p th:if="${#fields.hasErrors('lastName')}" class="text-danger" th:errors="*{lastName}"></p>
                   </div>
                   <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
-                    <input type="email" class="form-control" th:field="*{email}" id="email" aria-describedby="emailHelp">
+                    <input type="email" class="form-control" th:field="*{email}" id="email" placeholder="Enter your email">
                     <p th:if="${#fields.hasErrors('email')}" class="text-danger" th:errors="*{email}"></p>
                   </div>
                   <div class="mb-4">
-                    <label for="exampleInputPassword1" class="form-label">Password</label>
-                    <input type="password" class="form-control" th:field="*{password}"  id="exampleInputPassword1">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-control" th:field="*{password}"  placeholder="Password length must be between 8 and 20 characters">
                     <p th:if="${#fields.hasErrors('password')}" class="text-danger" th:errors="*{password}"></p>
                   </div>
                   <div class="d-flex align-items-center justify-content-between mb-4">

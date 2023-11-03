@@ -15,6 +15,7 @@ import net.bytebuddy.utility.RandomString;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -35,12 +36,14 @@ public class UserAuthenticationSerivceImpl implements UserAuthenticationService 
         return userRepository.findByEmail(email);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void saveUserResigter(RegistrationDTO registrationDTO) {
         User user = new User();
         user.setName(registrationDTO.getFirstName() + registrationDTO.getLastName());
         user.setEmail(registrationDTO.getEmail());
         user.setAuthenticationType(AuthenticationType.DATABASE);
+        user.setAccountNonLocked(true);
         user.setPassword(passwordEncoder.encode(registrationDTO.getPassword()));
         user.setVerificationCode(registrationDTO.getVerificationCode());
         Role role = roleRepository.findByName(ROLE.ROLE_GUEST.name());

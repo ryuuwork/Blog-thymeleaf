@@ -34,7 +34,9 @@ public class ForgotPassowordController {
     }
 
     @PostMapping("/forgot/password")
-    public String forgotPassword(@Valid @ModelAttribute("forgotPassword") ForgotPasswordDTO forgotPassword, BindingResult result, Model model) {
+    public String forgotPassword(@Valid @ModelAttribute("forgotPassword") ForgotPasswordDTO forgotPassword,
+                                 BindingResult result,
+                                 Model model) {
         if (result.hasErrors()) {
             model.addAttribute("email", forgotPassword.getEmail());
         } else {
@@ -66,7 +68,7 @@ public class ForgotPassowordController {
             return "authentication/reset-password";
         } else {
             model.addAttribute("message", "Token has expired or invalid");
-            return "authentication/message";
+            return "authentication/forgot-password";
         }
     }
 
@@ -75,7 +77,7 @@ public class ForgotPassowordController {
                                 @RequestParam("password") String password, Model model) {
         authenticationService.updatePasswordAfterReset(token, password);
         model.addAttribute("message", "New password set successfully");
-        return "authentication/message";
+        return "authentication/login";
     }
 
 }

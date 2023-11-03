@@ -70,7 +70,8 @@
                     <div class="tab-content" id="pills-tabContent">
                         <div class="tab-pane fade show active" id="pills-account" role="tabpanel"
                              aria-labelledby="pills-account-tab" tabindex="0">
-                            <p th:if="${message != null}" id="message" class="alert alert-success" style="text-align: center">
+                            <p th:if="${message != null}" id="message" class="alert alert-success"
+                               style="text-align: center">
                                 [[${message}]]</p>
                             <form th:action="@{/admin/users/account/update}" method="post" th:object="${loggedUser}"
                                   enctype="multipart/form-data">
@@ -113,8 +114,9 @@
                                                     here</p>
                                                 <div class="mb-4">
                                                     <label class="form-label fw-semibold">Current Password</label>
-                                                    <input type="password" id="currentPassword" th:field="*{password}" class="form-control"
-                                                           placeholder="Enter your current password">
+                                                    <input type="password" id="currentPassword" th:field="*{password}"
+                                                           class="form-control"
+                                                           placeholder="Enter your current password"/>
                                                     <p th:if="${#fields.hasErrors('password')}" class="text-danger"
                                                        th:errors="*{password}"></p>
                                                 </div>
@@ -124,16 +126,16 @@
                                                            oninput="checkPasswordMatch()" th:field="*{newPassword}"
                                                            class="form-control"
                                                            placeholder="Length is from 8 to 20 characters">
-                                                    <p th:if="${#fields.hasErrors('password')}" class="text-danger"
-                                                       th:errors="*{password}"></p>
+                                                    <p th:if="${#fields.hasErrors('newPassword')}" class="text-danger"
+                                                       th:errors="*{newPassword}"></p>
                                                 </div>
                                                 <div class="">
                                                     <label class="form-label fw-semibold">Confirm Password</label>
                                                     <input type="password" id="confirmPassword"
                                                            oninput="checkPasswordMatch()" class="form-control"
                                                            placeholder="Length is from 8 to 20 characters">
-                                                    <p th:if="${#fields.hasErrors('password')}" class="text-danger"
-                                                       th:errors="*{password}"></p>
+                                                    <p th:if="${#fields.hasErrors('newPassword')}" class="text-danger"
+                                                       th:errors="*{newPassword}"></p>
                                                 </div>
                                             </div>
                                         </div>
@@ -168,7 +170,8 @@
                                                             <input th:field="*{address}" type="text"
                                                                    class="form-control"
                                                                    placeholder="Enter your address">
-                                                            <p th:if="${#fields.hasErrors('address')}" class="text-danger"
+                                                            <p th:if="${#fields.hasErrors('address')}"
+                                                               class="text-danger"
                                                                th:errors="*{address}"></p>
                                                         </div>
                                                         <div class="mb-4">
@@ -176,7 +179,8 @@
                                                             <input th:field="*{phoneNumber}" type="text"
                                                                    class="form-control"
                                                                    placeholder="Enter your phone number">
-                                                            <p th:if="${#fields.hasErrors('phoneNumber')}" class="text-danger"
+                                                            <p th:if="${#fields.hasErrors('phoneNumber')}"
+                                                               class="text-danger"
                                                                th:errors="*{phoneNumber}"></p>
                                                         </div>
                                                     </div>
