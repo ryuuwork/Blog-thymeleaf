@@ -4,14 +4,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 import java.util.Properties;
 
 @Configuration
-@PropertySource("classpath:mail.properties")
 @ConfigurationProperties(prefix = "spring.mail")
 public class MailSenderConfiguration {
     private static final String MAIL_SMTP_AUTH = "mail.smtp.auth";
