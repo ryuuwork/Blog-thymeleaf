@@ -1,8 +1,9 @@
 package com.tuananhdo.service;
 
-import com.tuananhdo.payload.RegistrationDTO;
 import com.tuananhdo.entity.User;
 import com.tuananhdo.exception.EmailNotFoundException;
+import com.tuananhdo.payload.ForgotPasswordDTO;
+import com.tuananhdo.payload.RegistrationDTO;
 import com.tuananhdo.utils.AuthenticationType;
 
 public interface UserAuthenticationService {
@@ -19,7 +20,7 @@ public interface UserAuthenticationService {
 
     boolean isResetPasswordTokenValid(String token);
 
-    void updatePasswordAfterReset(String token, String password);
+    void updatePasswordAndRemoveToken(String token, ForgotPasswordDTO userRequest);
 
     boolean getTokenVerification(String token);
 }

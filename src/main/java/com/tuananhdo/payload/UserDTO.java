@@ -26,12 +26,12 @@ public class UserDTO {
     @NotBlank(message = "{user.email.not.blank}")
     @Email(message = "{user.email}")
     private String email;
-    private String hidentMail;
     @NotBlank(message = "{user.password.not.blank}")
     @Size(min = 8,max = 20,message = "{user.password.size}")
     private String password;
     @NotBlank(message = "{user.password.new.not.blank}")
-    @Size(min = 8,max = 20,message = "{user.password.new.size}")private String newPassword;
+    @Size(min = 8,max = 20,message = "{user.password.new.size}")
+    private String newPassword;
     @Enumerated(EnumType.STRING)
     private AuthenticationType authenticationType;
     private boolean enabled;

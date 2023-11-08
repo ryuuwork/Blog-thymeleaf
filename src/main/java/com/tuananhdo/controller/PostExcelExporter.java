@@ -17,7 +17,6 @@ import java.util.concurrent.CompletableFuture;
 public class PostExcelExporter extends AbstractExporter {
     private final XSSFWorkbook workbook;
     private final XSSFSheet sheet;
-
     public PostExcelExporter() {
         workbook = new XSSFWorkbook();
         sheet = workbook.createSheet("Posts");

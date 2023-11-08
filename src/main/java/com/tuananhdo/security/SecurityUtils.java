@@ -10,7 +10,6 @@ import java.util.Objects;
 
 @Component
 public class SecurityUtils {
-
     public static CustomUserDetails getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (Objects.nonNull(authentication) && authentication.getPrincipal() instanceof CustomUserDetails) {

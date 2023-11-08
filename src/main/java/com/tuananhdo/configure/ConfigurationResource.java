@@ -13,7 +13,6 @@ import java.util.List;
 @Configuration
 public class ConfigurationResource implements WebMvcConfigurer {
 
-
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
       registerResourceHandler(registry,"post-photos");

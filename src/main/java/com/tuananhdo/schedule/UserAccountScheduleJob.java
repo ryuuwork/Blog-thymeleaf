@@ -6,6 +6,7 @@ import com.tuananhdo.service.impl.UserServiceImpl;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -20,8 +21,8 @@ public class UserAccountScheduleJob {
 
     private final UserService userService;
 
-//    @Scheduled(cron = "0 0 * * * *")
-    public void unLockAllUsersAccount() {
+    @Scheduled(cron = "0 0 0 * * ?")
+    private void unLockAllUsersAccount() {
         List<User> lockUserList = userService.getAllExpiredLockedAccounts();
         if (!lockUserList.isEmpty()) {
             lockUserList.forEach(userService::unlock);
@@ -29,5 +30,16 @@ public class UserAccountScheduleJob {
             LOGGER.info("No accounts found to unlock.");
         }
         LOGGER.info("Cron job to unlock accounts finished.");
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?")
+    private void removeAllTokenResetPasswordExpired() {
+        List<User> users = userService.getAllTokenResetPasswordExpired();
+        if (!users.isEmpty()) {
+            users.forEach(userService::removeTokenExpired);
+        } else {
+            LOGGER.info("No expired tokens were found !");
+        }
+        LOGGER.info("Cron job to remove token finished.");
     }
 }

@@ -23,6 +23,7 @@ public class CustomLoginFailureHandler extends SimpleUrlAuthenticationFailureHan
     public static final int MAX_FAILED_ATTEMPTS = 20;
 
     private final UserService userService;
+
     @Override
     public void onAuthenticationFailure(HttpServletRequest request,
                                         HttpServletResponse response,
@@ -35,10 +36,10 @@ public class CustomLoginFailureHandler extends SimpleUrlAuthenticationFailureHan
                     userService.increaseFailedAttempt(user);
                 } else {
                     userService.lock(user);
-                    request.getSession().setAttribute("message","You account has been locked due to" +
+                    request.getSession().setAttribute("message", "You account has been locked due to" +
                             StringUtil.toLowerCase(String.valueOf(MAX_FAILED_ATTEMPTS)) + " failed attempts, Please try again later");
                 }
-            } else if (!user.isAccountNonLocked()) {
+            } else if (!user.isAccountNonLocked() && Objects.isNull(user.getVerificationCode())) {
                 userService.unlock(user);
             }
             LOGGER.error("User failed to login: " + email);

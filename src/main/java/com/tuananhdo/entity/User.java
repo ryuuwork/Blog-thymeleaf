@@ -36,9 +36,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "authentication_type", length = 10)
     private AuthenticationType authenticationType;
-    @Column(name = "verification_code", length = 64, updatable = false)
+    @Column(name = "verification_code", length = 128, updatable = false)
     private String verificationCode;
-    @Column(name = "reset_password_token", length = 30)
+    @Column(name = "reset_password_token", length = 128)
     private String resetPasswordToken;
     @Column(name = "reset_password_token_expiration_time")
     private LocalDateTime resetPasswordTokenExpirationTime;

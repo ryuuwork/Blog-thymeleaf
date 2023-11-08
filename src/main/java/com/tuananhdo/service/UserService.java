@@ -41,4 +41,8 @@ public interface UserService {
     void resetFailedAttempts(String email);
 
     List<User> getAllExpiredLockedAccounts();
+
+    List<User> getAllTokenResetPasswordExpired();
+
+    void removeTokenExpired(User user);
 }

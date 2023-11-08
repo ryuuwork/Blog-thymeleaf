@@ -1,9 +1,10 @@
 package com.tuananhdo.service.impl;
 
-import com.tuananhdo.payload.RegistrationDTO;
 import com.tuananhdo.entity.Role;
 import com.tuananhdo.entity.User;
 import com.tuananhdo.exception.EmailNotFoundException;
+import com.tuananhdo.payload.ForgotPasswordDTO;
+import com.tuananhdo.payload.RegistrationDTO;
 import com.tuananhdo.repository.RoleRepository;
 import com.tuananhdo.repository.UserRepository;
 import com.tuananhdo.service.UserAuthenticationService;
@@ -12,6 +13,8 @@ import com.tuananhdo.utils.ErrorMessageUtil;
 import com.tuananhdo.utils.ROLE;
 import lombok.AllArgsConstructor;
 import net.bytebuddy.utility.RandomString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,7 +29,9 @@ import java.util.stream.Stream;
 @Service
 @AllArgsConstructor
 public class UserAuthenticationSerivceImpl implements UserAuthenticationService {
-    public static final int TOKEN_EXPIRATION_HOURS = 2;
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserAuthenticationSerivceImpl.class);
+
+    public static final int TOKEN_EXPIRATION_HOURS = 10;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
@@ -43,7 +48,6 @@ public class UserAuthenticationSerivceImpl implements UserAuthenticationService 
         user.setName(registrationDTO.getFirstName() + registrationDTO.getLastName());
         user.setEmail(registrationDTO.getEmail());
         user.setAuthenticationType(AuthenticationType.DATABASE);
-        user.setAccountNonLocked(true);
         user.setPassword(passwordEncoder.encode(registrationDTO.getPassword()));
         user.setVerificationCode(registrationDTO.getVerificationCode());
         Role role = roleRepository.findByName(ROLE.ROLE_GUEST.name());
@@ -71,8 +75,8 @@ public class UserAuthenticationSerivceImpl implements UserAuthenticationService 
     @Override
     public String updateResetPasswordToken(String email) throws EmailNotFoundException {
         User user = userRepository.findByEmail(email);
-        if (Objects.nonNull(user)) {
-            String token = RandomString.make(30);
+        if (Objects.nonNull(user) && user.isEnabled() && user.isAccountNonLocked()) {
+            String token = RandomString.make(128);
             user.setResetPasswordToken(token);
             user.setResetPasswordTokenExpirationTime(LocalDateTime.now());
             userRepository.save(user);
@@ -80,33 +84,27 @@ public class UserAuthenticationSerivceImpl implements UserAuthenticationService 
         } else {
             throw new EmailNotFoundException(ErrorMessageUtil.EMAIL_NOT_FOUND_ERROR);
         }
-
     }
 
     @Override
     public boolean isResetPasswordTokenValid(String token) {
         User user = userRepository.findByResetPasswordToken(token);
-        if (user != null && user.getResetPasswordTokenExpirationTime() != null) {
+        if (Objects.nonNull(user) && Objects.nonNull(user.getResetPasswordTokenExpirationTime())) {
             LocalDateTime nowTime = LocalDateTime.now();
             LocalDateTime tokenExpirationTime = user.getResetPasswordTokenExpirationTime();
             Duration duration = Duration.between(tokenExpirationTime, nowTime);
-            return duration.toHours() <= TOKEN_EXPIRATION_HOURS;
+            return duration.toMinutes() <= TOKEN_EXPIRATION_HOURS;
         }
         return false;
     }
 
     @Override
-    public void updatePasswordAfterReset(String token, String password) {
+    public void updatePasswordAndRemoveToken(String token, ForgotPasswordDTO userRequest) {
         User user = userRepository.findByResetPasswordToken(token);
         if (Objects.isNull(user)) {
             throw new UsernameNotFoundException(ErrorMessageUtil.NO_TOKEN_FOUND);
         }
-        encodePassword(password, user);
-    }
-
-    private void encodePassword(String password, User user) {
-        String encodedPassword = passwordEncoder.encode(password);
-        user.setPassword(encodedPassword);
+        user.setPassword(passwordEncoder.encode(userRequest.getNewPassword()));
         user.setResetPasswordToken(null);
         user.setResetPasswordTokenExpirationTime(null);
         userRepository.save(user);
@@ -115,10 +113,10 @@ public class UserAuthenticationSerivceImpl implements UserAuthenticationService 
     @Override
     public boolean getTokenVerification(String token) {
         User user = userRepository.findByVerificationCode(token);
-        if (Objects.isNull(user) || user.isEnabled()) {
+        if (Objects.isNull(user) || user.isEnabled() && user.isAccountNonLocked()) {
             return false;
         } else {
-            userRepository.enableUser(user.getId());
+            userRepository.enableUserAndRemoveToken(user.getId());
             return true;
         }
     }

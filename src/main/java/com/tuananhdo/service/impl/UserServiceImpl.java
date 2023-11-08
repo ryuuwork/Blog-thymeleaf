@@ -69,8 +69,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> getAllTokenResetPasswordExpired() {
+        LocalDateTime now = LocalDateTime.now();
+        LOGGER.error(now.toString());
+        LocalDateTime timeExpired = now.minusMinutes(15);
+        LOGGER.error(timeExpired.toString());
+        return userRepository.findAllTokenResetPasswordExpired(timeExpired);
+    }
+
+    @Override
+    public void removeTokenExpired(User user) {
+        if (Objects.nonNull(user.getResetPasswordTokenExpirationTime())){
+            user.setResetPasswordTokenExpirationTime(null);
+            user.setResetPasswordToken(null);
+            userRepository.save(user);
+        }
+    }
+
+    @Override
     public void unlock(User user) {
-        if (Objects.isNull(user.getLockTime()) || isUnlockTimePassed(user)) {
+        if (Objects.nonNull(user.getLockTime()) || isUnlockTimePassed(user)) {
             user.setAccountNonLocked(true);
             user.setLockTime(null);
             user.setFailedAttempt(RESET_FAILED_ATTEMPT);

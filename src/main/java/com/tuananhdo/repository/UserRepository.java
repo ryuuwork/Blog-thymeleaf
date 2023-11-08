@@ -19,24 +19,24 @@ public interface UserRepository extends SearchRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.email = ?1")
     User findByEmail(String email);
 
-    @Query("UPDATE User c SET c.authenticationType = :type WHERE c.id = :id")
+    @Query("UPDATE User c SET c.authenticationType = ?2 WHERE c.id = ?1")
     @Modifying
     void updateAuthenticationType(Long id, AuthenticationType type);
 
-    @Query("SELECT u FROM User u WHERE  u.resetPasswordToken = :token")
+    @Query("SELECT u FROM User u WHERE  u.resetPasswordToken = ?1")
     User findByResetPasswordToken(String token);
 
     @Transactional
-    @Query("UPDATE User u SET u.enabled = true WHERE u.id = :id")
+    @Query("UPDATE User u SET u.enabled= true,u.accountNonLocked = true,u.verificationCode = null WHERE u.id = ?1")
     @Modifying
-    void enableUser(Long id);
+    void enableUserAndRemoveToken(Long id);
 
     @Transactional
     @Query("UPDATE User u SET u.enabled = ?2 WHERE u.id = ?1")
     @Modifying
     void updateEnabledStatus(Long id, boolean enabled);
 
-    @Query("SELECT c FROM User c WHERE c.verificationCode = :token")
+    @Query("SELECT c FROM User c WHERE c.verificationCode = ?1")
     User findByVerificationCode(String token);
 
     @Query("SELECT u FROM User u WHERE  u.id = ?1")
@@ -54,4 +54,7 @@ public interface UserRepository extends SearchRepository<User, Long> {
 
     @Query("SELECT u FROM User u WHERE u.accountNonLocked = false AND u.lockTime < ?1")
     List<User> findAllAccountExpired(LocalDateTime nowDateTime);
+
+    @Query("SELECT u FROM User u WHERE u.resetPasswordToken IS NOT NULL AND u.resetPasswordTokenExpirationTime < ?1")
+    List<User> findAllTokenResetPasswordExpired(LocalDateTime now);
 }

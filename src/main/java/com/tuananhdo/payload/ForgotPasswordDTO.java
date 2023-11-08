@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @Setter
 @Getter
@@ -16,4 +17,8 @@ public class ForgotPasswordDTO {
     @Email(message = "{forgot.password.valid.email}")
     @NotBlank(message = "{forgot.password.email.not.blank}")
     private String email;
+    @NotBlank(message = "{user.password.new.not.blank}")
+    @Size(min = 8,max = 20,message = "{user.password.new.size}")private
+    String newPassword;
+    String token;
 }
