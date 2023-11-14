@@ -3,6 +3,7 @@ package com.tuananhdo.controller;
 import com.tuananhdo.configure.PathConfiguration;
 import com.tuananhdo.entity.User;
 import com.tuananhdo.payload.RegistrationDTO;
+import com.tuananhdo.payload.TokenVerifyEmailDTO;
 import com.tuananhdo.service.MailService;
 import com.tuananhdo.service.UserAuthenticationService;
 import lombok.AllArgsConstructor;

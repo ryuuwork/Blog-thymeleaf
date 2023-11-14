@@ -2,7 +2,7 @@ package com.tuananhdo.utils;
 
 import java.util.Arrays;
 
-public class ReadTimeUtils {
+public class ReadTimeUtil {
     private static final int WORDS_PER_MINUTE = 200;
     private static final int ONE_MINUTE = 1;
     private static final String LESS_MIN_READ = "Less than 1 min";

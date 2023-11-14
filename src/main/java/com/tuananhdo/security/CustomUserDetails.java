@@ -2,6 +2,8 @@ package com.tuananhdo.security;
 
 import com.tuananhdo.entity.User;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,9 +13,9 @@ import java.util.stream.Collectors;
 
 @AllArgsConstructor
 public class CustomUserDetails implements UserDetails {
-    private static final long serialVersionUID = 1L;
-    private User user;
+    private static final Logger LOGGER = LoggerFactory.getLogger(CustomUserDetails.class);
 
+    private User user;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return user.getRoles().stream()
@@ -54,6 +56,7 @@ public class CustomUserDetails implements UserDetails {
     public String getFullName() {
         return this.user.getName();
     }
+
     public User getUser() {
         return user;
     }

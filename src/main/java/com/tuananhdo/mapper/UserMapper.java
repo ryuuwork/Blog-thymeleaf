@@ -2,7 +2,6 @@ package com.tuananhdo.mapper;
 
 import com.tuananhdo.entity.User;
 import com.tuananhdo.payload.UserDTO;
-import com.tuananhdo.utils.AuthenticationType;
 
 public class UserMapper {
 
@@ -13,6 +12,8 @@ public class UserMapper {
                 .email(user.getEmail())
                 .photos(user.getPhotos())
                 .password(user.getPassword())
+                .createdOn(user.getCreatedOn())
+                .updatedOn(user.getUpdatedOn())
                 .address(user.getAddress())
                 .phoneNumber(user.getPhoneNumber())
                 .enabled(user.isEnabled())
@@ -26,11 +27,13 @@ public class UserMapper {
                 .name(userDTO.getName())
                 .email(userDTO.getEmail())
                 .password(userDTO.getPassword())
+                .createdOn(userDTO.getCreatedOn())
+                .updatedOn(userDTO.getUpdatedOn())
                 .photos(userDTO.getPhotos())
                 .address(userDTO.getAddress())
                 .phoneNumber(userDTO.getPhoneNumber())
                 .enabled(userDTO.isEnabled())
-                .authenticationType(AuthenticationType.DATABASE)
+                .authenticationType(userDTO.getAuthenticationType())
                 .roles(userDTO.getRoles())
                 .build();
     }

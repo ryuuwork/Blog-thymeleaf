@@ -2,13 +2,15 @@ package com.tuananhdo.payload;
 
 import com.tuananhdo.entity.Role;
 import com.tuananhdo.utils.AuthenticationType;
+import com.tuananhdo.utils.PhotoPathUtil;
+import com.tuananhdo.validate.AddUserValidate;
 import lombok.*;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.Transient;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -24,14 +26,13 @@ public class UserDTO {
     @NotBlank(message = "{user.name.not.blank}")
     private String name;
     @NotBlank(message = "{user.email.not.blank}")
-    @Email(message = "{user.email}")
+    @Email(message = "{user.email.valid}")
     private String email;
-    @NotBlank(message = "{user.password.not.blank}")
-    @Size(min = 8,max = 20,message = "{user.password.size}")
+    @NotBlank(message = "{user.password.not.blank}", groups = AddUserValidate.class)
+    @Size(min = 8, max = 20, message = "{user.password.size}", groups = {AddUserValidate.class})
     private String password;
-    @NotBlank(message = "{user.password.new.not.blank}")
-    @Size(min = 8,max = 20,message = "{user.password.new.size}")
-    private String newPassword;
+    private LocalDateTime createdOn;
+    private LocalDateTime updatedOn;
     @Enumerated(EnumType.STRING)
     private AuthenticationType authenticationType;
     private boolean enabled;
@@ -43,12 +44,10 @@ public class UserDTO {
     private String resetPasswordToken;
     private String verificationCode;
     private LocalDateTime resetPasswordTokenExpirationTime;
+    @NotEmpty(message = "{user.roles.valid}")
     Set<Role> roles = new HashSet<>();
-    @Transient
-    public String getUserPhotoPath(){
-        if (id == null || photos == null || photos.isEmpty()){
-            return "/common/assets/images/products/s1.jpg";
-        }
-        return "/user-photos/"+this.id + "/"+ this.photos;
+
+    public String getUserPhotoPath() {
+        return PhotoPathUtil.getPhotoPath(this.id, this.photos);
     }
 }

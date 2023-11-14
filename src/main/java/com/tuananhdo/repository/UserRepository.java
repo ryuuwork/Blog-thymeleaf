@@ -19,6 +19,7 @@ public interface UserRepository extends SearchRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.email = ?1")
     User findByEmail(String email);
 
+    @Transactional
     @Query("UPDATE User c SET c.authenticationType = ?2 WHERE c.id = ?1")
     @Modifying
     void updateAuthenticationType(Long id, AuthenticationType type);

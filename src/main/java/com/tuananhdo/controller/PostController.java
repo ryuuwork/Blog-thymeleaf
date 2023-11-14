@@ -3,13 +3,13 @@ package com.tuananhdo.controller;
 import com.tuananhdo.exception.PostNotFoundException;
 import com.tuananhdo.paging.PagingAndSortingHelper;
 import com.tuananhdo.paging.PaingAndSortingParam;
+import com.tuananhdo.payload.AccountDTO;
 import com.tuananhdo.payload.CommentDTO;
 import com.tuananhdo.payload.PostDTO;
-import com.tuananhdo.payload.UserDTO;
 import com.tuananhdo.security.SecurityUtils;
+import com.tuananhdo.service.AccountService;
 import com.tuananhdo.service.CommentService;
 import com.tuananhdo.service.PostService;
-import com.tuananhdo.service.UserService;
 import com.tuananhdo.utils.FileUploadUtil;
 import com.tuananhdo.utils.ROLE;
 import com.tuananhdo.utils.StringUtil;
@@ -38,7 +38,7 @@ public class PostController {
 
     private final PostService postService;
     private final CommentService commentService;
-    private final UserService userService;
+    private final AccountService accountService;
 
     @GetMapping("/admin/posts")
     public String homeAllPosts() {
@@ -50,7 +50,7 @@ public class PostController {
                                   @PaingAndSortingParam(moduleURL = "/admin/posts",
                                           listName = "posts",pageTitle = "Management Post")
                                   PagingAndSortingHelper helper,Model model) {
-        UserDTO loggedUser = userService.getLoggedUser();
+        AccountDTO loggedUser = accountService.getLoggedAccount();
         model.addAttribute("loggedUser", loggedUser);
         String role = SecurityUtils.getRole();
         if (ROLE.ROLE_ADMIN.name().equals(role)) {
@@ -172,7 +172,7 @@ public class PostController {
 
     @GetMapping("/admin/posts/comments")
     public String postComments(Model model) {
-        UserDTO loggedUser = userService.getLoggedUser();
+        AccountDTO loggedUser = accountService.getLoggedAccount();
         String role = SecurityUtils.getRole();
         List<CommentDTO> comments;
         if (ROLE.ROLE_ADMIN.name().equals(role)) {

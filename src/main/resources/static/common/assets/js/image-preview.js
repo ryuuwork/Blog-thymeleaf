@@ -1,21 +1,24 @@
 $("#file").change(function () {
-    const fileSize = this.files[0].size;
-    if (fileSize > 1048576) {
-        this.setCustomValidity("You must choose ....")
-        this.reportValidity();
-    } else {
-        this.setCustomValidity("")
-        showImagePreview(this);
+    const input = this;
+    const file = input.files[0];
+    if (file) {
+        const fileSize = this.files[0].size;
+        if (fileSize > 1048576) {
+            this.setCustomValidity("You must choose ....")
+            this.reportValidity();
+        } else {
+            this.setCustomValidity("")
+            showImagePreview(input);
+        }
     }
 });
 
 function showImagePreview(fileInput) {
     const file = fileInput.files[0];
-    const reader = new FileReader();
-    reader.onload = function (event) {
-        $("#image-preview").attr("src", event.target.result)
-    };
-    reader.readAsDataURL(file);
+    if (file) {
+        const objectURL = URL.createObjectURL(file);
+        $("#image-preview").attr("src", objectURL);
+    }
 }
 
 function checkPasswordMatch() {

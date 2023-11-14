@@ -1,4 +1,4 @@
-package com.tuananhdo.controller;
+package com.tuananhdo.payload;
 
 import lombok.Getter;
 import lombok.Setter;

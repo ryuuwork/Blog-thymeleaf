@@ -10,7 +10,7 @@ import com.tuananhdo.repository.PostRepository;
 import com.tuananhdo.repository.UserRepository;
 import com.tuananhdo.security.SecurityUtils;
 import com.tuananhdo.service.PostService;
-import com.tuananhdo.utils.ReadTimeUtils;
+import com.tuananhdo.utils.ReadTimeUtil;
 import com.tuananhdo.utils.TimeUnit;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -128,6 +128,6 @@ public class PostServiceImpl implements PostService {
     }
 
     private String getReadTime(PostDTO postDTO) {
-        return ReadTimeUtils.calculateReadTime(postDTO.getContent());
+        return ReadTimeUtil.calculateReadTime(postDTO.getContent());
     }
 }

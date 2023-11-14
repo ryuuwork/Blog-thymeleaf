@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -41,12 +40,12 @@ public class UserAuthenticationSerivceImpl implements UserAuthenticationService 
         return userRepository.findByEmail(email);
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
     public void saveUserResigter(RegistrationDTO registrationDTO) {
         User user = new User();
         user.setName(registrationDTO.getFirstName() + registrationDTO.getLastName());
         user.setEmail(registrationDTO.getEmail());
+        user.setCreatedOn(LocalDateTime.now());
         user.setAuthenticationType(AuthenticationType.DATABASE);
         user.setPassword(passwordEncoder.encode(registrationDTO.getPassword()));
         user.setVerificationCode(registrationDTO.getVerificationCode());
@@ -57,17 +56,19 @@ public class UserAuthenticationSerivceImpl implements UserAuthenticationService 
 
     @Override
     public void updateAuthentication(User user, AuthenticationType type) {
-        if (!user.getAuthenticationType().equals(type)) {
+        if (Objects.isNull(user.getAuthenticationType()) || !user.getAuthenticationType().equals(type)) {
             userRepository.updateAuthenticationType(user.getId(), type);
         }
     }
 
     @Override
-    public void createUserOAuthLogin(String name, String email) {
+    public void createUserOAuthLogin(String name, String email, AuthenticationType authenticationType) {
         User user = new User();
         user.setName(name);
         user.setEmail(email);
-        user.setAuthenticationType(AuthenticationType.GOOGLE);
+        user.setEnabled(true);
+        user.setAccountNonLocked(true);
+        user.setAuthenticationType(authenticationType);
         user.setPassword("");
         userRepository.save(user);
     }

@@ -6,17 +6,22 @@ import com.tuananhdo.exception.EmailDuplicatedException;
 import com.tuananhdo.exception.UserNotFoundException;
 import com.tuananhdo.paging.PagingAndSortingHelper;
 import com.tuananhdo.paging.PaingAndSortingParam;
+import com.tuananhdo.payload.AccountDTO;
 import com.tuananhdo.payload.UserDTO;
+import com.tuananhdo.service.AccountService;
 import com.tuananhdo.service.UserAuthenticationService;
 import com.tuananhdo.service.UserService;
 import com.tuananhdo.utils.FileUploadUtil;
 import com.tuananhdo.utils.StringUtil;
+import com.tuananhdo.validate.AddUserValidate;
+import com.tuananhdo.validate.UpdateUserValidate;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -32,7 +37,7 @@ public class UserController {
     private static final String DEFAULT_REDIRECT_URL = "redirect:/admin/users/page/1?sortField=name&sortDir=asc";
 
     private final UserService userService;
-    private final UserAuthenticationService authenticationService;
+    private final AccountService accountService;
 
     @GetMapping("/admin/users")
     public String listAllUsers() {
@@ -43,7 +48,7 @@ public class UserController {
     public String listUserByPage(@PaingAndSortingParam(moduleURL = "/admin/users", listName = "users", pageTitle = "Management User") PagingAndSortingHelper helper,
                                  @PathVariable("pageNumber") int pageNumber, Model model) {
         userService.findAllUserByPage(pageNumber, helper);
-        UserDTO loggedUser = userService.getLoggedUser();
+        AccountDTO loggedUser = accountService.getLoggedAccount();
         model.addAttribute("loggedUser", loggedUser);
         return "admin/user/user-home";
     }
@@ -59,12 +64,22 @@ public class UserController {
     }
 
     @PostMapping("/admin/save/user")
-    public String saveUser(@Valid @ModelAttribute("user") UserDTO userDTO,
+    public String saveUser(@Validated(AddUserValidate.class) @Valid @ModelAttribute("user") UserDTO userDTO,
                            BindingResult result,
                            @RequestParam("image") MultipartFile multipartFile,
                            Model model,
                            RedirectAttributes redirectAttributes) throws IOException {
-        if (existingUser(userDTO, result, model)) return "admin/user/create-user";
+        User existingUser = userService.getByEmail(userDTO.getEmail());
+        if (existingUser != null && !existingUser.getEmail().isEmpty()) {
+            result.rejectValue("email", null, "There is already a user with same email");
+        }
+        if (result.hasErrors()) {
+            List<Role> listRoles = userService.listRoles();
+            model.addAttribute("pageTitle", "User Account Management");
+            model.addAttribute("listRoles", listRoles);
+            LOGGER.error(result.getAllErrors().toString());
+            return "admin/user/create-user";
+        }
         if (!multipartFile.isEmpty()) {
             String fileName = FileUploadUtil.getOriginalFileName(multipartFile);
             userDTO.setPhotos(fileName);
@@ -78,23 +93,10 @@ public class UserController {
         return redirectPageUrlForNameOfUser(userDTO);
     }
 
-    private boolean existingUser(UserDTO userDTO, BindingResult result, Model model) {
-        User existingUser = authenticationService.findByEmail(userDTO.getEmail());
-        if (existingUser != null && !existingUser.getEmail().isEmpty()) {
-            result.rejectValue("email", null, "There is already a user with same email");
-        }
-        List<Role> listRoles = userService.listRoles();
-        if (result.hasErrors()) {
-            model.addAttribute("listRoles", listRoles);
-            return true;
-        }
-        return false;
-    }
-
     @GetMapping("/admin/user/update/{userId}")
     public String updateUser(@PathVariable("userId") Long userId, Model model) throws UserNotFoundException {
         List<Role> listRoles = userService.listRoles();
-        UserDTO user = userService.findByUserId(userId);
+        UserDTO user = userService.getUserById(userId);
         model.addAttribute("listRoles", listRoles);
         model.addAttribute("user", user);
         model.addAttribute("pageTitle", "Update User");
@@ -103,20 +105,44 @@ public class UserController {
 
     @PostMapping("/admin/save/user/{userId}")
     public String updateUser(@PathVariable("userId") Long userId,
+                             @Validated(UpdateUserValidate.class)
                              @Valid @ModelAttribute("user") UserDTO userDTO,
                              BindingResult result,
                              @RequestParam("image") MultipartFile multipartFile,
                              Model model,
                              RedirectAttributes redirectAttributes) throws IOException, UserNotFoundException, EmailDuplicatedException {
-        UserDTO getUser = userService.findByUserId(userDTO.getId());
-        if (!userDTO.getEmail().equals(getUser.getEmail())) {
-            if (existingUser(userDTO, result, model)) return "admin/user/update-user";
+
+
+        List<Role> listRoles = userService.listRoles();
+        model.addAttribute("listRoles", listRoles);
+        model.addAttribute("pageTitle", "Update User");
+
+        if (result.hasErrors()) {
+            return "admin/user/update-user";
+        }
+
+        UserDTO userById = userService.getUserById(userId);
+        String emailInForm = userDTO.getEmail();
+        String emailInDB = userById.getEmail();
+        boolean isValidEmailUnique = userService.isValidEmailUnique(emailInForm);
+
+        if (!emailInDB.equals(emailInForm) && isValidEmailUnique) {
+            result.rejectValue("email", null, "There is already a user with same email");
+            return "admin/user/update-user";
+        }
+
+        if (!userDTO.getPassword().isEmpty() && isValidLengthPasswordAndEmptySpace(userDTO.getPassword())) {
+            model.addAttribute("message", "Password should be at least 8 to 25 characters and not space empty");
+            return "admin/user/update-user";
         }
         updateUserDetails(userId, userDTO, multipartFile);
         UserDTO updatedUser = userService.updateUser(userDTO);
         redirectAttributes.addFlashAttribute("message", "The user " + StringUtil.toLowerCase(updatedUser.getName()) + " has been updated successfully!");
         return DEFAULT_REDIRECT_URL;
+    }
 
+    private static boolean isValidLengthPasswordAndEmptySpace(String password) {
+        return password.trim().isEmpty() || password.length() < 8 || password.length() > 25;
     }
 
     private void updateUserDetails(Long userId, UserDTO userDTO, MultipartFile multipartFile) throws IOException, UserNotFoundException, EmailDuplicatedException {
@@ -147,7 +173,7 @@ public class UserController {
     public String updateUserEnabledStatus(@PathVariable("userId") Long userId,
                                           @PathVariable("status") boolean enabled,
                                           RedirectAttributes redirectAttributes) throws UserNotFoundException {
-        UserDTO userDTO = userService.findByUserId(userId);
+        UserDTO userDTO = userService.getUserById(userId);
         userService.updateUserEnabledStatus(userId, enabled);
         String status = enabled ? "enabled" : "disabled";
         redirectAttributes.addFlashAttribute("message", "The user " + StringUtil.toLowerCase(userDTO.getName()) + " has been " + status);

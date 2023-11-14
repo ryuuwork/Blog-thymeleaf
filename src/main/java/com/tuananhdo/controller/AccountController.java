@@ -2,8 +2,8 @@ package com.tuananhdo.controller;
 
 import com.tuananhdo.exception.PasswordValidationException;
 import com.tuananhdo.exception.UserNotFoundException;
-import com.tuananhdo.payload.UserDTO;
-import com.tuananhdo.service.UserService;
+import com.tuananhdo.payload.AccountDTO;
+import com.tuananhdo.service.AccountService;
 import com.tuananhdo.utils.FileUploadUtil;
 import com.tuananhdo.utils.StringUtil;
 import lombok.AllArgsConstructor;
@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.validation.Valid;
 import java.io.IOException;
 
 @Controller
@@ -26,17 +27,18 @@ import java.io.IOException;
 public class AccountController {
     private static final Logger LOGGER = LoggerFactory.getLogger(AccountController.class);
 
-    private final UserService userService;
+    private final AccountService accountService;
 
     @GetMapping("/admin/users/account/setting")
     public String viewAccountDetails(Model model) {
-        UserDTO loggedUser = userService.getLoggedUser();
+        AccountDTO loggedUser = accountService.getLoggedAccount();
         model.addAttribute("loggedUser", loggedUser);
+        model.addAttribute("pageTitle", "Account Setting");
         return "/admin/user/account-setting";
     }
 
     @PostMapping("/admin/users/account/update")
-    public String updateAccountDetails(@ModelAttribute("loggedUser") UserDTO userDTO, BindingResult bindingResult,
+    public String updateAccountDetails(@Valid @ModelAttribute("loggedUser") AccountDTO accountDTO, BindingResult bindingResult,
                                        @RequestParam("image") MultipartFile multipartFile,
                                        RedirectAttributes redirectAttributes) throws IOException {
         if (bindingResult.hasErrors()) {
@@ -46,14 +48,14 @@ public class AccountController {
         try {
             if (!multipartFile.isEmpty()) {
                 String fileName = FileUploadUtil.getOriginalFileName(multipartFile);
-                userDTO.setPhotos(fileName);
-                UserDTO updated = userService.updateAccountDetails(userDTO);
+                accountDTO.setPhotos(fileName);
+                AccountDTO updated = accountService.updateAccountDetails(accountDTO);
                 String uploadDir = FileUploadUtil.getPhotoFolderId(FileUploadUtil.USER_PHOTOS, updated.getId());
                 FileUploadUtil.saveFile(uploadDir, fileName, multipartFile);
             } else {
-                userService.updateAccountDetails(userDTO);
+                accountService.updateAccountDetails(accountDTO);
             }
-            redirectAttributes.addFlashAttribute("message", "The account :  " + StringUtil.toLowerCase(userDTO.getEmail()) + " has been updated.");
+            redirectAttributes.addFlashAttribute("message", "The account :  " + StringUtil.toLowerCase(accountDTO.getEmail()) + " has been updated.");
         } catch (PasswordValidationException | UserNotFoundException exception) {
             redirectAttributes.addFlashAttribute("exception", exception.getMessage());
         }

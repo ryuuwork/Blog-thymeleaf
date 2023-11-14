@@ -27,6 +27,8 @@ public class User {
     @Column(nullable = false)
     private String password;
     private boolean enabled;
+    private LocalDateTime createdOn;
+    private LocalDateTime updatedOn;
     @Column(length = 64)
     private String photos;
     @Column(length = 70)

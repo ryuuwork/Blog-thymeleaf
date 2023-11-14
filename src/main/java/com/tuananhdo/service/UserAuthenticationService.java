@@ -14,7 +14,7 @@ public interface UserAuthenticationService {
 
     void updateAuthentication(User user, AuthenticationType type);
 
-    void createUserOAuthLogin(String name, String email);
+    void createUserOAuthLogin(String name, String email, AuthenticationType authenticationType);
 
     String updateResetPasswordToken(String email) throws EmailNotFoundException;
 

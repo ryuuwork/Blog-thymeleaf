@@ -5,7 +5,6 @@ import com.tuananhdo.payload.CommentDTO;
 
 public class CommentMapper {
 
-    //convert comment entity to comment dto
     public static CommentDTO mapToCommentDTO(Comment comment) {
         return CommentDTO.builder()
                 .id(comment.getId())
@@ -18,7 +17,6 @@ public class CommentMapper {
                 .build();
     }
 
-    //convert commentDTO to comment Entity
     public static Comment mapToComment(CommentDTO commentDTO) {
         return Comment.builder()
                 .id(commentDTO.getId())

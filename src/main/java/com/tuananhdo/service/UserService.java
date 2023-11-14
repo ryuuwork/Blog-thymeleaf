@@ -3,7 +3,6 @@ package com.tuananhdo.service;
 import com.tuananhdo.entity.Role;
 import com.tuananhdo.entity.User;
 import com.tuananhdo.exception.EmailDuplicatedException;
-import com.tuananhdo.exception.PasswordValidationException;
 import com.tuananhdo.exception.UserNotFoundException;
 import com.tuananhdo.paging.PagingAndSortingHelper;
 import com.tuananhdo.payload.UserDTO;
@@ -14,19 +13,16 @@ public interface UserService {
 
     void findAllUserByPage(int pageNumber, PagingAndSortingHelper helper);
 
-    UserDTO getLoggedUser();
-
-    UserDTO updateAccountDetails(UserDTO userDTO) throws UserNotFoundException, PasswordValidationException;
-
     List<Role> listRoles();
 
     UserDTO saveUser(UserDTO userDTO);
 
     UserDTO updateUser(UserDTO user) throws UserNotFoundException, EmailDuplicatedException;
 
+    boolean isValidEmailUnique(String email);
     void deleteUserById(Long userId);
 
-    UserDTO findByUserId(Long id) throws UserNotFoundException;
+    UserDTO getUserById(Long id) throws UserNotFoundException;
 
     void updateUserEnabledStatus(Long userId, boolean enabled);
 
@@ -43,6 +39,5 @@ public interface UserService {
     List<User> getAllExpiredLockedAccounts();
 
     List<User> getAllTokenResetPasswordExpired();
-
     void removeTokenExpired(User user);
 }

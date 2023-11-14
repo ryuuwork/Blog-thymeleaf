@@ -2,7 +2,6 @@ package com.tuananhdo.service.impl;
 
 import com.tuananhdo.entity.Role;
 import com.tuananhdo.entity.User;
-import com.tuananhdo.exception.PasswordValidationException;
 import com.tuananhdo.exception.UserNotFoundException;
 import com.tuananhdo.mapper.UserMapper;
 import com.tuananhdo.paging.PagingAndSortingHelper;
@@ -10,7 +9,6 @@ import com.tuananhdo.payload.UserDTO;
 import com.tuananhdo.repository.RoleRepository;
 import com.tuananhdo.repository.UserRepository;
 import com.tuananhdo.schedule.UserAccountScheduleJob;
-import com.tuananhdo.security.SecurityUtils;
 import com.tuananhdo.service.UserService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -49,6 +47,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean isValidEmailUnique(String email) {
+        User user = userRepository.findByEmail(email);
+        return user != null;
+    }
+
+    @Override
     public void resetFailedAttempts(String email) {
         userRepository.updateFailedAttempt(RESET_FAILED_ATTEMPT, email);
     }
@@ -79,7 +83,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void removeTokenExpired(User user) {
-        if (Objects.nonNull(user.getResetPasswordTokenExpirationTime())){
+        if (Objects.nonNull(user.getResetPasswordTokenExpirationTime())) {
             user.setResetPasswordTokenExpirationTime(null);
             user.setResetPasswordToken(null);
             userRepository.save(user);
@@ -106,37 +110,6 @@ public class UserServiceImpl implements UserService {
         helper.updateModelAttributes(pageNumber, pageUserDTO);
     }
 
-    @Override
-    public UserDTO getLoggedUser() {
-        String email = Objects.requireNonNull(SecurityUtils.getCurrentUser()).getUsername();
-        User user = userRepository.findByEmail(email);
-        return UserMapper.mapToUserDTO(user);
-    }
-
-    @Override
-    public UserDTO updateAccountDetails(UserDTO userDTO) throws UserNotFoundException, PasswordValidationException {
-        User userInDB = userRepository.findById(userDTO.getId())
-                .orElseThrow(() -> new UserNotFoundException("Not found user with id : " + userDTO.getId()));
-        if (!userDTO.getPassword().isEmpty()) {
-            boolean isMatch = passwordEncoder.matches(userDTO.getPassword(), userInDB.getPassword());
-            if (isMatch) {
-                userInDB.setPassword(userDTO.getNewPassword());
-                encodedPassword(userInDB);
-            } else {
-                throw new PasswordValidationException("Current password is incorrect");
-            }
-        }
-        if (Objects.nonNull(userDTO.getPhotos())) {
-            userInDB.setPhotos(userDTO.getPhotos());
-        }
-        userInDB.setName(userDTO.getName());
-        userInDB.setEnabled(true);
-        userInDB.setEmail(userDTO.getEmail());
-        userInDB.setAddress(userDTO.getAddress());
-        userInDB.setPhoneNumber(userDTO.getPhoneNumber());
-        userRepository.save(userInDB);
-        return UserMapper.mapToUserDTO(userInDB);
-    }
 
     @Override
     public List<Role> listRoles() {
@@ -167,6 +140,10 @@ public class UserServiceImpl implements UserService {
         } else {
             encodedPassword(user);
         }
+        if (Objects.nonNull(userInDB.getPhotos())){
+            user.setPhotos(userInDB.getPhotos());
+        }
+        user.setUpdatedOn(LocalDateTime.now());
         user.setEnabled(userInDB.isEnabled());
         user.setAccountNonLocked(userInDB.isAccountNonLocked());
         userRepository.save(user);
@@ -174,7 +151,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO findByUserId(Long id) throws UserNotFoundException {
+    public UserDTO getUserById(Long id) throws UserNotFoundException {
         return userRepository.findById(id)
                 .map(UserMapper::mapToUserDTO)
                 .orElseThrow(() -> new UserNotFoundException("User ID " + id + " not found"));

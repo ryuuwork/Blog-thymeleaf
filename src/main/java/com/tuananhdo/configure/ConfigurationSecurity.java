@@ -3,6 +3,9 @@ package com.tuananhdo.configure;
 import com.tuananhdo.security.CustomLoginFailureHandler;
 import com.tuananhdo.security.CustomLoginSuccessHandler;
 import com.tuananhdo.security.CustomUserDetailsService;
+import com.tuananhdo.security.DatabaseLoginSuccessHandler;
+import com.tuananhdo.security.oauth.OAuth2BlogUserService;
+import com.tuananhdo.security.oauth.OAuth2LoginSuccessHandler;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,10 +26,15 @@ public class ConfigurationSecurity {
 
     private final CustomLoginSuccessHandler customLoginSuccessHandler;
     private final CustomLoginFailureHandler customLoginFailureHandler;
+    private final OAuth2BlogUserService oAuth2BlogUserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final DatabaseLoginSuccessHandler databaseLoginSuccessHandler;
+
     @Bean
     public UserDetailsService userDetailsService() {
         return new CustomUserDetailsService();
     }
+
     @Bean
     public static PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -38,26 +46,28 @@ public class ConfigurationSecurity {
                 .authorizeHttpRequests((authorize) -> authorize
                         .antMatchers("/resources/**").permitAll()
                         .antMatchers("/register/**").permitAll()
-                        .antMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN")
+                        .antMatchers("/admin/**").hasAnyAuthority("ADMIN")
                         .antMatchers("/login").permitAll()
                         .antMatchers("/").permitAll()
                         .antMatchers("/posts/**").permitAll())
                 .formLogin(form -> {
                     try {
                         form.loginPage("/login")
-//                                .and()
-//                                .oauth2Login()
-                                .loginPage("/login")
                                 .failureHandler(customLoginFailureHandler)
                                 .successHandler(customLoginSuccessHandler)
                                 .defaultSuccessUrl("/")
                                 .usernameParameter("email")
-//                                .userInfoEndpoint()
-//                                .userService(oAuth2UserService)
-//                                .and()
-//                                .successHandler(oAuth2LoginSuccessHandler)
-//                                .and()
-//                                .rememberMe().tokenValiditySeconds(86400)
+                                .successHandler(databaseLoginSuccessHandler)
+                                .permitAll()
+                                .and()
+                                .oauth2Login()
+                                .loginPage("/login")
+                                .userInfoEndpoint()
+                                .userService(oAuth2BlogUserService)
+                                .and()
+                                .successHandler(oAuth2LoginSuccessHandler)
+                                .and()
+                                .rememberMe().tokenValiditySeconds(86400)
                                 .and().logout().logoutSuccessUrl("/login?logout")
                                 .permitAll();
                     } catch (Exception e) {
@@ -70,14 +80,14 @@ public class ConfigurationSecurity {
         return http.build();
     }
 
-    public DaoAuthenticationProvider authenticationProvider(){
+    public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setUserDetailsService(userDetailsService());
         authenticationProvider.setPasswordEncoder(passwordEncoder());
         return authenticationProvider;
     }
 
-    public void configure(AuthenticationManagerBuilder builder){
+    public void configure(AuthenticationManagerBuilder builder) {
         builder.authenticationProvider(authenticationProvider());
     }
 }
