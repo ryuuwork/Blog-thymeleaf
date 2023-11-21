@@ -73,7 +73,7 @@ public class AccountServiceImpl implements AccountService {
         if (!newPassword.isEmpty() && !password.isEmpty() &&
                 ValidateUtil.isValidLengthPasswordAndEmptySpace(newPassword) &&
                 ValidateUtil.isValidLengthPasswordAndEmptySpace(password)) {
-            throw new PasswordValidationException("Current validatePassword and new validatePassword should be at least 8 to 25 characters and not space empty");
+            throw new PasswordValidationException("Current password and new password should be at least 8 to 25 characters and not space empty");
         }
         if (!newPassword.isEmpty() && password.isEmpty()) {
             throw new PasswordValidationException("Enter current password for security verification before save new validatePassword");
