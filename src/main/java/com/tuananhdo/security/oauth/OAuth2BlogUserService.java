@@ -15,6 +15,4 @@ public class OAuth2BlogUserService extends DefaultOAuth2UserService {
         OAuth2User user = super.loadUser(userRequest);
         return new OAuth2BlogUser(user,customerName);
     }
-
-
 }

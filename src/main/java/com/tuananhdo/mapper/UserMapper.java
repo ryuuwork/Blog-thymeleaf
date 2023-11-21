@@ -4,7 +4,6 @@ import com.tuananhdo.entity.User;
 import com.tuananhdo.payload.UserDTO;
 
 public class UserMapper {
-
     public static UserDTO mapToUserDTO(User user) {
         return UserDTO.builder()
                 .id(user.getId())

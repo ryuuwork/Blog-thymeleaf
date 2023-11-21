@@ -39,14 +39,13 @@ public class CustomLoginFailureHandler extends SimpleUrlAuthenticationFailureHan
                     request.getSession().setAttribute("message", "You account has been locked due to" +
                             StringUtil.toLowerCase(String.valueOf(MAX_FAILED_ATTEMPTS)) + " failed attempts, Please try again later");
                 }
-            } else if (!user.isAccountNonLocked() && Objects.isNull(user.getVerificationCode())) {
+            } else if (!user.isAccountNonLocked() && Objects.nonNull(user.getLockTime()) && Objects.isNull(user.getVerificationCode())) {
                 userService.unlock(user);
             }
             LOGGER.error("User failed to login: " + email);
         } else {
             LOGGER.error("Email not found: " + email);
         }
-        super.setDefaultFailureUrl("/login?error");
         super.onAuthenticationFailure(request, response, exception);
     }
 }

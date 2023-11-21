@@ -6,15 +6,14 @@ import com.tuananhdo.exception.EmailDuplicatedException;
 import com.tuananhdo.exception.UserNotFoundException;
 import com.tuananhdo.paging.PagingAndSortingHelper;
 import com.tuananhdo.paging.PaingAndSortingParam;
-import com.tuananhdo.payload.AccountDTO;
 import com.tuananhdo.payload.UserDTO;
 import com.tuananhdo.service.AccountService;
-import com.tuananhdo.service.UserAuthenticationService;
 import com.tuananhdo.service.UserService;
 import com.tuananhdo.utils.FileUploadUtil;
 import com.tuananhdo.utils.StringUtil;
 import com.tuananhdo.validate.AddUserValidate;
 import com.tuananhdo.validate.UpdateUserValidate;
+import com.tuananhdo.validate.ValidateUtil;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +47,7 @@ public class UserController {
     public String listUserByPage(@PaingAndSortingParam(moduleURL = "/admin/users", listName = "users", pageTitle = "Management User") PagingAndSortingHelper helper,
                                  @PathVariable("pageNumber") int pageNumber, Model model) {
         userService.findAllUserByPage(pageNumber, helper);
-        AccountDTO loggedUser = accountService.getLoggedAccount();
+        UserDTO loggedUser = accountService.getLoggedAccount();
         model.addAttribute("loggedUser", loggedUser);
         return "admin/user/user-home";
     }
@@ -131,7 +130,7 @@ public class UserController {
             return "admin/user/update-user";
         }
 
-        if (!userDTO.getPassword().isEmpty() && isValidLengthPasswordAndEmptySpace(userDTO.getPassword())) {
+        if (!userDTO.getPassword().isEmpty() && ValidateUtil.isValidLengthPasswordAndEmptySpace(userDTO.getPassword())) {
             model.addAttribute("message", "Password should be at least 8 to 25 characters and not space empty");
             return "admin/user/update-user";
         }
@@ -139,10 +138,6 @@ public class UserController {
         UserDTO updatedUser = userService.updateUser(userDTO);
         redirectAttributes.addFlashAttribute("message", "The user " + StringUtil.toLowerCase(updatedUser.getName()) + " has been updated successfully!");
         return DEFAULT_REDIRECT_URL;
-    }
-
-    private static boolean isValidLengthPasswordAndEmptySpace(String password) {
-        return password.trim().isEmpty() || password.length() < 8 || password.length() > 25;
     }
 
     private void updateUserDetails(Long userId, UserDTO userDTO, MultipartFile multipartFile) throws IOException, UserNotFoundException, EmailDuplicatedException {
@@ -161,7 +156,7 @@ public class UserController {
 
     @GetMapping("/admin/user/delete/{userId}")
     public String deleteUser(@PathVariable("userId") Long userId,
-                             RedirectAttributes redirectAttributes) throws IOException {
+                             RedirectAttributes redirectAttributes) throws IOException, UserNotFoundException {
         userService.deleteUserById(userId);
         String folderImage = FileUploadUtil.getPhotoFolderId(FileUploadUtil.USER_PHOTOS, userId);
         FileUploadUtil.cleanDir(folderImage);

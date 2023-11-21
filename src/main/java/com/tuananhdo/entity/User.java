@@ -1,12 +1,16 @@
 package com.tuananhdo.entity;
 
 
+import com.tuananhdo.payload.UserDTO;
 import com.tuananhdo.utils.AuthenticationType;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 @Setter
@@ -27,7 +31,9 @@ public class User {
     @Column(nullable = false)
     private String password;
     private boolean enabled;
+    @CreationTimestamp
     private LocalDateTime createdOn;
+    @UpdateTimestamp
     private LocalDateTime updatedOn;
     @Column(length = 64)
     private String photos;
@@ -55,5 +61,25 @@ public class User {
     @JoinTable(name = "users_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id")
             , inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     private Set<Role> roles = new HashSet<>();
+
+    public void coppyFields(UserDTO another) {
+        setPhotos(Optional.ofNullable(another.getPhotos()).orElse(this.getPhotos()));
+        setName(another.getName());
+        setEmail(another.getEmail());
+        setAddress(another.getAddress());
+        setPhoneNumber(another.getPhoneNumber());
+    }
+
+    public void coppyAllFields(UserDTO another) {
+        coppyFields(another);
+        setEnabled(true);
+        setAccountNonLocked(true);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("User{name='%s', address='%s', photos='%s', phoneNumber='%s', email='%s'}",
+                name, address, photos, phoneNumber, email);
+    }
 
 }

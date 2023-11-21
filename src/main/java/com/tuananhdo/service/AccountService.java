@@ -2,11 +2,14 @@ package com.tuananhdo.service;
 
 import com.tuananhdo.exception.PasswordValidationException;
 import com.tuananhdo.exception.UserNotFoundException;
-import com.tuananhdo.payload.AccountDTO;
+import com.tuananhdo.payload.UserDTO;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 public interface AccountService {
 
-    AccountDTO getLoggedAccount();
+    UserDTO getLoggedAccount();
 
-    AccountDTO updateAccountDetails(AccountDTO accountDTO) throws UserNotFoundException, PasswordValidationException;
+    UserDTO updateAccountDetails(UserDTO accountDTO, MultipartFile multipartFile) throws UserNotFoundException, PasswordValidationException, IOException;
 }

@@ -84,7 +84,7 @@
                                                 <p class="card-subtitle mb-4">Change your profile picture from here</p>
                                                 <div class="text-center">
                                                     <input type="hidden" th:field="*{photos}">
-                                                    <img th:src="@{${loggedUser.getAccountPhotoPath()}}" alt=""
+                                                    <img th:src="@{${loggedUser.getUserPhotoPath()}}" alt=""
                                                          class="img-fluid rounded-circle" id="image-preview" width="120"
                                                          height="120">
                                                     <input type="file" style="display: none" name="image"
@@ -106,9 +106,7 @@
                                     <div class="col-lg-6 d-flex align-items-stretch">
                                         <div class="card w-100 position-relative overflow-hidden">
                                             <div class="card-body p-4">
-                                                <p th:if="${exception != null}" class="alert alert-danger"
-                                                   style="text-align: center">
-                                                    [[${exception}]]</p>
+                                                <p th:if="${exception != null}" class="alert alert-danger" style="text-align: center">[[${exception}]]</p>
                                                 <h5 class="card-title fw-semibold">Change Password</h5>
                                                 <p class="card-subtitle mb-4">To change your password please confirm
                                                     here</p>
@@ -116,26 +114,20 @@
                                                     <label class="form-label fw-semibold">Current Password</label>
                                                     <input type="password" id="currentPassword" th:field="*{password}"
                                                            class="form-control"
-                                                           placeholder="Enter your current password"/>
-                                                    <p th:if="${#fields.hasErrors('password')}" class="text-danger"
-                                                       th:errors="*{password}"></p>
+                                                           placeholder="Leave blank if you don't change any infomation"/>
                                                 </div>
                                                 <div class="mb-4">
                                                     <label class="form-label fw-semibold">New Password</label>
                                                     <input type="password" id="newPassword"
                                                            oninput="checkPasswordMatch()" th:field="*{newPassword}"
                                                            class="form-control"
-                                                           placeholder="Length is from 8 to 20 characters">
-                                                    <p th:if="${#fields.hasErrors('newPassword')}" class="text-danger"
-                                                       th:errors="*{newPassword}"></p>
+                                                           placeholder="Leave blank if you don't change any infomation"/>
                                                 </div>
                                                 <div class="">
                                                     <label class="form-label fw-semibold">Confirm Password</label>
                                                     <input type="password" id="confirmPassword"
                                                            oninput="checkPasswordMatch()" class="form-control"
-                                                           placeholder="Length is from 8 to 20 characters">
-                                                    <p th:if="${#fields.hasErrors('newPassword')}" class="text-danger"
-                                                       th:errors="*{newPassword}"></p>
+                                                           placeholder="Leave blank if you don't change any infomation"/>
                                                 </div>
                                             </div>
                                         </div>
@@ -159,7 +151,7 @@
                                                         <div class="mb-4">
                                                             <label class="form-label fw-semibold">Email</label>
                                                             <input th:field="*{email}" type="email" class="form-control"
-                                                                   placeholder="Enter your email">
+                                                                   placeholder="Enter your email" readonly>
                                                             <p th:if="${#fields.hasErrors('email')}" class="text-danger"
                                                                th:errors="*{email}"></p>
                                                         </div>
@@ -846,5 +838,5 @@
 </div>
 </body>
 <script th:replace="common/fragments::script"></script>
-<script th:src="@{/common/assets/js/image-preview.js}"></script>
+<script th:src="@{/common/assets/js/custom-preview.js}"></script>
 </html>

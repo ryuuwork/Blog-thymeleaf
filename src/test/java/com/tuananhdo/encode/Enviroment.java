@@ -6,7 +6,6 @@ public class Enviroment {
         System.out.println(System.getenv("ENV_EMAIL_FILE"));
         System.out.println(replaceAllSpace(""));
     }
-
     public static String replaceAllSpace(String input){
         return input.replaceAll("\\s","");
     }

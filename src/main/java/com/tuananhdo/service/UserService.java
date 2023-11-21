@@ -20,7 +20,9 @@ public interface UserService {
     UserDTO updateUser(UserDTO user) throws UserNotFoundException, EmailDuplicatedException;
 
     boolean isValidEmailUnique(String email);
-    void deleteUserById(Long userId);
+    void deleteUserById(Long userId) throws UserNotFoundException;
+
+    void deleteSelectedUsers(List<Long> userIds);
 
     UserDTO getUserById(Long id) throws UserNotFoundException;
 

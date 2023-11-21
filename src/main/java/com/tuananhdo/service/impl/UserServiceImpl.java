@@ -65,34 +65,9 @@ public class UserServiceImpl implements UserService {
         UserAccountScheduleJob.executorService.schedule(()
                 -> unlock(user), NUMBER_MINUTES, TimeUnit.MINUTES);
     }
-
-    @Override
-    public List<User> getAllExpiredLockedAccounts() {
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        return userRepository.findAllAccountExpired(currentDateTime);
-    }
-
-    @Override
-    public List<User> getAllTokenResetPasswordExpired() {
-        LocalDateTime now = LocalDateTime.now();
-        LOGGER.error(now.toString());
-        LocalDateTime timeExpired = now.minusMinutes(15);
-        LOGGER.error(timeExpired.toString());
-        return userRepository.findAllTokenResetPasswordExpired(timeExpired);
-    }
-
-    @Override
-    public void removeTokenExpired(User user) {
-        if (Objects.nonNull(user.getResetPasswordTokenExpirationTime())) {
-            user.setResetPasswordTokenExpirationTime(null);
-            user.setResetPasswordToken(null);
-            userRepository.save(user);
-        }
-    }
-
     @Override
     public void unlock(User user) {
-        if (Objects.nonNull(user.getLockTime()) || isUnlockTimePassed(user)) {
+        if (Objects.nonNull(user.getLockTime()) && isUnlockTimePassed(user)) {
             user.setAccountNonLocked(true);
             user.setLockTime(null);
             user.setFailedAttempt(RESET_FAILED_ATTEMPT);
@@ -104,6 +79,27 @@ public class UserServiceImpl implements UserService {
         return user.getLockTime().isBefore(LocalDateTime.now());
     }
 
+    @Override
+    public List<User> getAllExpiredLockedAccounts() {
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        return userRepository.findAllAccountExpired(currentDateTime);
+    }
+
+    @Override
+    public List<User> getAllTokenResetPasswordExpired() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime timeExpired = now.minusMinutes(15);
+        return userRepository.findAllTokenResetPasswordExpired(timeExpired);
+    }
+
+    @Override
+    public void removeTokenExpired(User user) {
+        if (Objects.nonNull(user.getResetPasswordTokenExpirationTime())) {
+            user.setResetPasswordTokenExpirationTime(null);
+            user.setResetPasswordToken(null);
+            userRepository.save(user);
+        }
+    }
     @Override
     public void findAllUserByPage(int pageNumber, PagingAndSortingHelper helper) {
         Page<UserDTO> pageUserDTO = helper.sortAndPagingOrSearchAllPage(pageNumber, USERS_SIZE_PAGE, userRepository, UserMapper::mapToUserDTO);
@@ -118,36 +114,26 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO saveUser(UserDTO userDTO) {
-        User user = UserMapper.maptoUser(userDTO);
-        user.setEnabled(true);
-        encodedPassword(user);
-        User saveUser = userRepository.save(user);
-        return UserMapper.mapToUserDTO(saveUser);
+        User user = new User();
+        user.coppyAllFields(userDTO);
+        user.setPassword(encodedPassword(userDTO.getPassword()));
+        User savedUser = userRepository.save(user);
+        return UserMapper.mapToUserDTO(savedUser);
     }
 
-    private void encodedPassword(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+    private String encodedPassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
     }
-
 
     @Override
     public UserDTO updateUser(UserDTO userInForm) throws UserNotFoundException {
-        User userInDB = userRepository.findById(userInForm.getId()).orElseThrow(()
-                -> new UserNotFoundException("User ID " + userInForm.getId() + " not found"));
-        User user = UserMapper.maptoUser(userInForm);
-        if (user.getPassword().isEmpty()) {
-            user.setPassword(userInDB.getPassword());
-        } else {
-            encodedPassword(user);
-        }
-        if (Objects.nonNull(userInDB.getPhotos())){
-            user.setPhotos(userInDB.getPhotos());
-        }
-        user.setUpdatedOn(LocalDateTime.now());
-        user.setEnabled(userInDB.isEnabled());
-        user.setAccountNonLocked(userInDB.isAccountNonLocked());
-        userRepository.save(user);
-        return UserMapper.mapToUserDTO(user);
+        User userInDB = userRepository.findById(userInForm.getId()).orElseThrow(() -> new UserNotFoundException("User ID " + userInForm.getId() + " not found"));
+        String password = userInForm.getPassword().isEmpty() ? userInDB.getPassword() : encodedPassword(userInForm.getPassword());
+        userInDB.setPassword(password);
+        userInDB.setRoles(userInDB.getRoles());
+        userInDB.coppyFields(userInForm);
+        User updated = userRepository.save(userInDB);
+        return UserMapper.mapToUserDTO(updated);
     }
 
     @Override
@@ -163,8 +149,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUserById(Long userId) {
-        userRepository.deleteById(userId);
+    public void deleteUserById(Long userId) throws UserNotFoundException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User ID " + userId + " not found"));
+        userRepository.delete(user);
     }
 
+    @Override
+    public void deleteSelectedUsers(List<Long> userIds) {
+        List<User> users = userRepository.findAllById(userIds);
+        userRepository.deleteAll(users);
+    }
 }

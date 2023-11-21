@@ -45,6 +45,9 @@ public interface UserRepository extends SearchRepository<User, Long> {
 
     List<User> findAll();
 
+    @Query("SELECT u FROM User u WHERE u.id IN :userIds")
+    List<User> findAllById(List<Long> userIds);
+
     @Query("SELECT u FROM User u WHERE CONCAT(LOWER(u.id), '',LOWER(u.email), '',LOWER(u.name)) LIKE %?1%")
     Page<User> findAllByKeyWord(Pageable pageable, String keyword);
 
@@ -57,5 +60,8 @@ public interface UserRepository extends SearchRepository<User, Long> {
     List<User> findAllAccountExpired(LocalDateTime nowDateTime);
 
     @Query("SELECT u FROM User u WHERE u.resetPasswordToken IS NOT NULL AND u.resetPasswordTokenExpirationTime < ?1")
-    List<User> findAllTokenResetPasswordExpired(LocalDateTime now);
+    List<User> findAllTokenResetPasswordExpired(LocalDateTime timeExpired);
+
+    @Query("SELECT u FROM User u where u.email LIKE %?1")
+    List<User> findByEmailEndingWith(String suffix);
 }

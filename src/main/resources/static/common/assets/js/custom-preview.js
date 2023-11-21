@@ -52,4 +52,3 @@ document.getElementById("resetButton").addEventListener("click", function (event
     window.location.href = "/admin/users";
 });
 
-
