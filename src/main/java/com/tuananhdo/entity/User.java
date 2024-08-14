@@ -62,12 +62,18 @@ public class User {
             , inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     private Set<Role> roles = new HashSet<>();
 
-    public void coppyFields(UserDTO another) {
+
+    public void getUserPhotoPath(UserDTO another) {
         setPhotos(Optional.ofNullable(another.getPhotos()).orElse(this.getPhotos()));
         setName(another.getName());
         setEmail(another.getEmail());
         setAddress(another.getAddress());
         setPhoneNumber(another.getPhoneNumber());
+    }
+
+    public void coppyFields(UserDTO another) {
+        setEnabled(true);
+        setAccountNonLocked(true);
     }
 
     public void coppyAllFields(UserDTO another) {

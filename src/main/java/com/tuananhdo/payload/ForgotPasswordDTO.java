@@ -18,7 +18,7 @@ public class ForgotPasswordDTO {
     @NotBlank(message = "{forgot.password.email.not.blank}")
     private String email;
     @NotBlank(message = "{user.password.new.not.blank}")
-    @Size(min = 8,max = 20,message = "{user.password.new.size}")private
-    String newPassword;
-    String token;
+    @Size(min = 8,max = 20,message = "{user.password.new.size}")
+    private String newPassword;
+    private String token;
 }
